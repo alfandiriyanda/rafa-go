@@ -4,6 +4,7 @@
  */
 
 import React, { useState } from 'react';
+import { motion } from 'motion/react';
 import { useRental } from '../../lib/context/RentalContext';
 import {
   Bike,
@@ -277,6 +278,23 @@ export const BookingModal: React.FC = () => {
                       <option value={3.0}>3.0 Jam</option>
                       <option value={4.0}>4.0 Jam</option>
                     </select>
+                    {/* Quick selection chips */}
+                    <div className="flex gap-1.5 mt-2">
+                      {[1.0, 1.5, 2.0, 3.0].map((hrs) => (
+                        <button
+                          key={hrs}
+                          type="button"
+                          onClick={() => setBookingFormState((prev) => ({ ...prev, durationHours: hrs }))}
+                          className={`flex-1 py-1 rounded-lg text-[10px] font-bold transition-all cursor-pointer active:scale-95 ${
+                            bookingFormState.durationHours === hrs
+                              ? 'bg-[#00696D] text-white shadow-xs'
+                              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                          }`}
+                        >
+                          {hrs}j
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
 
@@ -324,11 +342,13 @@ export const BookingModal: React.FC = () => {
                 </div>
               </div>
 
-              {/* Submit CTA */}
-              <button
+              {/* Submit CTA with micro-interaction */}
+              <motion.button
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.98 }}
                 type="submit"
                 disabled={isSubmitting || cart.length === 0}
-                className="w-full py-4 rounded-xl btn-primary text-sm font-bold flex items-center justify-center gap-2 shadow-lg hover:shadow-xl cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full py-4 rounded-xl btn-primary text-sm font-bold flex items-center justify-center gap-2 shadow-lg hover:shadow-xl cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-shadow"
               >
                 {isSubmitting ? (
                   <span>Memproses Pesanan...</span>
@@ -338,7 +358,7 @@ export const BookingModal: React.FC = () => {
                     <ArrowRight className="w-4 h-4" />
                   </>
                 )}
-              </button>
+              </motion.button>
             </form>
           </div>
 

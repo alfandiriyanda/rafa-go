@@ -4,6 +4,7 @@
  */
 
 import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { useRental } from '../../lib/context/RentalContext';
 import {
   ShoppingBag,
@@ -91,7 +92,11 @@ export const Navbar: React.FC = () => {
           >
             Beranda
             {currentView === 'home' && (
-              <span className="w-full h-[2.5px] bg-[#00696D] rounded-full absolute -bottom-1 left-0"></span>
+              <motion.span
+                layoutId="navbarActiveIndicator"
+                className="w-full h-[2.5px] bg-[#00696D] rounded-full absolute -bottom-1 left-0"
+                transition={{ type: 'spring', stiffness: 450, damping: 30 }}
+              />
             )}
           </button>
 
@@ -105,20 +110,24 @@ export const Navbar: React.FC = () => {
           >
             Katalog Sepeda
             {currentView === 'katalog' && (
-              <span className="w-full h-[2.5px] bg-[#00696D] rounded-full absolute -bottom-1 left-0"></span>
+              <motion.span
+                layoutId="navbarActiveIndicator"
+                className="w-full h-[2.5px] bg-[#00696D] rounded-full absolute -bottom-1 left-0"
+                transition={{ type: 'spring', stiffness: 450, damping: 30 }}
+              />
             )}
           </button>
 
           <button
             onClick={() => handleNavToSection('cara-sewa')}
-            className="font-heading text-sm text-[#5B6B7A] hover:text-[#12202F] font-medium cursor-pointer transition-colors py-1"
+            className="font-heading text-sm text-[#5B6B7A] hover:text-[#12202F] font-medium cursor-pointer transition-colors py-1 hover:translate-y-[-1px]"
           >
             Cara Sewa
           </button>
 
           <button
             onClick={() => handleNavToSection('katalog-lengkap')}
-            className="font-heading text-sm text-[#5B6B7A] hover:text-[#12202F] font-medium cursor-pointer transition-colors py-1"
+            className="font-heading text-sm text-[#5B6B7A] hover:text-[#12202F] font-medium cursor-pointer transition-colors py-1 hover:translate-y-[-1px]"
           >
             Daftar Tarif
           </button>
@@ -133,13 +142,17 @@ export const Navbar: React.FC = () => {
           >
             Syarat & Denda
             {currentView === 'kebijakan' && (
-              <span className="w-full h-[2.5px] bg-[#00696D] rounded-full absolute -bottom-1 left-0"></span>
+              <motion.span
+                layoutId="navbarActiveIndicator"
+                className="w-full h-[2.5px] bg-[#00696D] rounded-full absolute -bottom-1 left-0"
+                transition={{ type: 'spring', stiffness: 450, damping: 30 }}
+              />
             )}
           </button>
 
           <button
             onClick={() => handleNavToSection('faq')}
-            className="font-heading text-sm text-[#5B6B7A] hover:text-[#12202F] font-medium cursor-pointer transition-colors py-1"
+            className="font-heading text-sm text-[#5B6B7A] hover:text-[#12202F] font-medium cursor-pointer transition-colors py-1 hover:translate-y-[-1px]"
           >
             Bantuan / FAQ
           </button>
@@ -150,7 +163,7 @@ export const Navbar: React.FC = () => {
           {/* Cek Pesanan / Status Sewa */}
           <button
             onClick={() => navigateTo('pesanan')}
-            className={`h-10 px-4 hidden md:inline-flex items-center justify-center rounded-xl font-heading text-xs font-semibold transition-all cursor-pointer border ${
+            className={`h-10 px-4 hidden md:inline-flex items-center justify-center rounded-xl font-heading text-xs font-semibold transition-all cursor-pointer border active:scale-95 ${
               currentView === 'pesanan'
                 ? 'bg-[#12202F] text-white border-[#12202F] shadow-xs'
                 : 'bg-slate-50 text-[#12202F] border-slate-200 hover:bg-slate-100'
@@ -162,15 +175,24 @@ export const Navbar: React.FC = () => {
           {/* Keranjang Sewa */}
           <button
             onClick={() => navigateTo('pesan')}
-            className="w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 text-[#12202F] flex items-center justify-center transition-all cursor-pointer relative"
+            className="w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 text-[#12202F] flex items-center justify-center transition-all cursor-pointer relative active:scale-95"
             title="Keranjang Sewa Sepeda"
           >
             <ShoppingBag className="w-5 h-5 text-slate-700" />
-            {cart.length > 0 && (
-              <span className="absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1 rounded-full bg-[#00696D] text-white text-[10px] font-bold flex items-center justify-center border-2 border-white shadow-xs">
-                {cart.length}
-              </span>
-            )}
+            <AnimatePresence>
+              {cart.length > 0 && (
+                <motion.span
+                  key={cart.length}
+                  initial={{ scale: 0.4, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.4, opacity: 0 }}
+                  transition={{ type: 'spring', stiffness: 500, damping: 25 }}
+                  className="absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1 rounded-full bg-[#00696D] text-white text-[10px] font-bold flex items-center justify-center border-2 border-white shadow-xs"
+                >
+                  {cart.length}
+                </motion.span>
+              )}
+            </AnimatePresence>
           </button>
 
           {/* Hubungi WhatsApp CS */}
@@ -178,7 +200,7 @@ export const Navbar: React.FC = () => {
             href="https://wa.me/62876653342?text=Halo%20Admin%20RAFA%20GO%2C%20saya%20ingin%20tanya%20sewa%20sepeda%20di%20CitraRaya%20City"
             target="_blank"
             rel="noopener noreferrer"
-            className="w-10 h-10 rounded-xl bg-[#EBF9FA] text-[#00696D] hover:bg-[#D4F3F5] flex items-center justify-center transition-all"
+            className="w-10 h-10 rounded-xl bg-[#EBF9FA] text-[#00696D] hover:bg-[#D4F3F5] hover:scale-105 active:scale-95 flex items-center justify-center transition-all"
             title="Hubungi WhatsApp Admin"
           >
             <MessageCircle className="w-5 h-5" />
@@ -187,7 +209,7 @@ export const Navbar: React.FC = () => {
           {/* Primary CTA: Sewa Sekarang */}
           <button
             onClick={() => navigateTo(cart.length > 0 ? 'pesan' : 'katalog')}
-            className="h-10 px-4 sm:px-5 inline-flex items-center justify-center rounded-xl btn-primary text-xs font-bold shadow-md cursor-pointer whitespace-nowrap"
+            className="h-10 px-4 sm:px-5 inline-flex items-center justify-center rounded-xl btn-primary text-xs font-bold shadow-md cursor-pointer whitespace-nowrap active:scale-95 transition-transform"
           >
             Sewa Sekarang
           </button>
@@ -197,7 +219,7 @@ export const Navbar: React.FC = () => {
             <div className="hidden sm:flex items-center gap-1.5 pl-2 border-l border-slate-200">
               <button
                 onClick={() => navigateTo('dashboard')}
-                className="px-3 py-2 rounded-xl bg-[#12202F] text-white text-xs font-bold hover:bg-slate-800 transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
+                className="px-3 py-2 rounded-xl bg-[#12202F] text-white text-xs font-bold hover:bg-slate-800 transition-all flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-95"
                 title="Buka Dashboard Admin"
               >
                 <ShieldCheck className="w-3.5 h-3.5 text-[#4FC3C8]" />
@@ -205,12 +227,12 @@ export const Navbar: React.FC = () => {
                   {userRole === 'owner' ? 'Owner' : 'Admin'}
                 </span>
                 {pendingVerificationCount > 0 && (
-                  <span className="w-2 h-2 rounded-full bg-amber-400"></span>
+                  <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
                 )}
               </button>
               <button
                 onClick={logoutAdmin}
-                className="p-2 rounded-xl hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition-colors cursor-pointer"
+                className="p-2 rounded-xl hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition-colors cursor-pointer active:scale-90"
                 title="Logout"
               >
                 <LogOut className="w-4 h-4" />
@@ -221,7 +243,7 @@ export const Navbar: React.FC = () => {
           {/* Mobile hamburger menu toggle */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="lg:hidden p-2 text-slate-700 hover:bg-slate-100 rounded-xl cursor-pointer"
+            className="lg:hidden p-2 text-slate-700 hover:bg-slate-100 rounded-xl cursor-pointer active:scale-90 transition-transform"
             aria-label="Menu Navigasi"
           >
             {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -230,130 +252,139 @@ export const Navbar: React.FC = () => {
       </div>
 
       {/* Mobile Drawer Menu */}
-      {mobileMenuOpen && (
-        <div className="lg:hidden bg-white border-b border-[#E2EBF0] px-4 pt-3 pb-6 space-y-1.5 shadow-lg animate-in slide-in-from-top-2 duration-200">
-          <button
-            onClick={() => {
-              navigateTo('home');
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-              setMobileMenuOpen(false);
-            }}
-            className={`w-full text-left px-3.5 py-3 rounded-xl text-xs font-bold flex items-center gap-2.5 ${
-              currentView === 'home'
-                ? 'bg-[#EBF9FA] text-[#00696D]'
-                : 'text-[#12202F] hover:bg-slate-50'
-            }`}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+            className="lg:hidden bg-white/95 backdrop-blur-md border-b border-[#E2EBF0] px-4 pt-3 pb-6 space-y-1.5 shadow-xl overflow-hidden"
           >
-            <Home className="w-4 h-4 text-slate-500" />
-            <span>Beranda</span>
-          </button>
-
-          <button
-            onClick={() => {
-              navigateTo('katalog');
-              setMobileMenuOpen(false);
-            }}
-            className={`w-full text-left px-3.5 py-3 rounded-xl text-xs font-bold flex items-center gap-2.5 ${
-              currentView === 'katalog'
-                ? 'bg-[#EBF9FA] text-[#00696D]'
-                : 'text-[#12202F] hover:bg-slate-50'
-            }`}
-          >
-            <Bike className="w-4 h-4 text-slate-500" />
-            <span>Katalog Sepeda</span>
-          </button>
-
-          <button
-            onClick={() => handleNavToSection('cara-sewa')}
-            className="w-full text-left px-3.5 py-3 rounded-xl text-xs font-semibold text-[#12202F] hover:bg-slate-50 flex items-center gap-2.5"
-          >
-            <CheckCircle className="w-4 h-4 text-slate-500" />
-            <span>Cara Sewa Sepeda</span>
-          </button>
-
-          <button
-            onClick={() => handleNavToSection('katalog-lengkap')}
-            className="w-full text-left px-3.5 py-3 rounded-xl text-xs font-semibold text-[#12202F] hover:bg-slate-50 flex items-center gap-2.5"
-          >
-            <Search className="w-4 h-4 text-slate-500" />
-            <span>Daftar Tarif Rental</span>
-          </button>
-
-          <button
-            onClick={() => {
-              navigateTo('pesanan');
-              setMobileMenuOpen(false);
-            }}
-            className={`w-full text-left px-3.5 py-3 rounded-xl text-xs font-bold flex items-center gap-2.5 ${
-              currentView === 'pesanan'
-                ? 'bg-[#EBF9FA] text-[#00696D]'
-                : 'text-[#12202F] hover:bg-slate-50'
-            }`}
-          >
-            <FileText className="w-4 h-4 text-slate-500" />
-            <span>Cek Status Pesanan / Sewa</span>
-          </button>
-
-          <button
-            onClick={() => {
-              navigateTo('kebijakan');
-              setMobileMenuOpen(false);
-            }}
-            className={`w-full text-left px-3.5 py-3 rounded-xl text-xs font-bold flex items-center gap-2.5 ${
-              currentView === 'kebijakan'
-                ? 'bg-[#EBF9FA] text-[#00696D]'
-                : 'text-[#12202F] hover:bg-slate-50'
-            }`}
-          >
-            <ShieldCheck className="w-4 h-4 text-slate-500" />
-            <span>Syarat & Kebijakan Denda</span>
-          </button>
-
-          <button
-            onClick={() => handleNavToSection('faq')}
-            className="w-full text-left px-3.5 py-3 rounded-xl text-xs font-semibold text-[#12202F] hover:bg-slate-50 flex items-center gap-2.5"
-          >
-            <HelpCircle className="w-4 h-4 text-slate-500" />
-            <span>Bantuan & FAQ</span>
-          </button>
-
-          <div className="pt-3 border-t border-slate-100 flex flex-col gap-2">
             <button
               onClick={() => {
-                navigateTo(cart.length > 0 ? 'pesan' : 'katalog');
+                navigateTo('home');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
                 setMobileMenuOpen(false);
               }}
-              className="w-full py-3 text-center rounded-xl btn-primary text-xs font-bold shadow-sm"
+              className={`w-full text-left px-3.5 py-3 rounded-xl text-xs font-bold flex items-center gap-2.5 transition-all ${
+                currentView === 'home'
+                  ? 'bg-[#EBF9FA] text-[#00696D]'
+                  : 'text-[#12202F] hover:bg-slate-50'
+              }`}
             >
-              Sewa Sepeda Sekarang
+              <Home className="w-4 h-4 text-slate-500" />
+              <span>Beranda</span>
             </button>
 
-            {isAdminAuthenticated && (
-              <div className="flex gap-2 pt-1">
-                <button
-                  onClick={() => {
-                    navigateTo('dashboard');
-                    setMobileMenuOpen(false);
-                  }}
-                  className="flex-1 py-2.5 text-center rounded-xl bg-[#12202F] text-white text-xs font-bold flex items-center justify-center gap-1.5"
-                >
-                  <ShieldCheck className="w-4 h-4 text-[#4FC3C8]" />
-                  Dashboard Admin
-                </button>
-                <button
-                  onClick={() => {
-                    logoutAdmin();
-                    setMobileMenuOpen(false);
-                  }}
-                  className="px-4 py-2.5 text-center rounded-xl bg-rose-50 text-rose-700 text-xs font-bold"
-                >
-                  Logout
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+            <button
+              onClick={() => {
+                navigateTo('katalog');
+                setMobileMenuOpen(false);
+              }}
+              className={`w-full text-left px-3.5 py-3 rounded-xl text-xs font-bold flex items-center gap-2.5 transition-all ${
+                currentView === 'katalog'
+                  ? 'bg-[#EBF9FA] text-[#00696D]'
+                  : 'text-[#12202F] hover:bg-slate-50'
+              }`}
+            >
+              <Bike className="w-4 h-4 text-slate-500" />
+              <span>Katalog Sepeda</span>
+            </button>
+
+            <button
+              onClick={() => handleNavToSection('cara-sewa')}
+              className="w-full text-left px-3.5 py-3 rounded-xl text-xs font-semibold text-[#12202F] hover:bg-slate-50 flex items-center gap-2.5 transition-all"
+            >
+              <CheckCircle className="w-4 h-4 text-slate-500" />
+              <span>Cara Sewa Sepeda</span>
+            </button>
+
+            <button
+              onClick={() => handleNavToSection('katalog-lengkap')}
+              className="w-full text-left px-3.5 py-3 rounded-xl text-xs font-semibold text-[#12202F] hover:bg-slate-50 flex items-center gap-2.5 transition-all"
+            >
+              <Search className="w-4 h-4 text-slate-500" />
+              <span>Daftar Tarif Rental</span>
+            </button>
+
+            <button
+              onClick={() => {
+                navigateTo('pesanan');
+                setMobileMenuOpen(false);
+              }}
+              className={`w-full text-left px-3.5 py-3 rounded-xl text-xs font-bold flex items-center gap-2.5 transition-all ${
+                currentView === 'pesanan'
+                  ? 'bg-[#EBF9FA] text-[#00696D]'
+                  : 'text-[#12202F] hover:bg-slate-50'
+              }`}
+            >
+              <FileText className="w-4 h-4 text-slate-500" />
+              <span>Cek Status Pesanan / Sewa</span>
+            </button>
+
+            <button
+              onClick={() => {
+                navigateTo('kebijakan');
+                setMobileMenuOpen(false);
+              }}
+              className={`w-full text-left px-3.5 py-3 rounded-xl text-xs font-bold flex items-center gap-2.5 transition-all ${
+                currentView === 'kebijakan'
+                  ? 'bg-[#EBF9FA] text-[#00696D]'
+                  : 'text-[#12202F] hover:bg-slate-50'
+              }`}
+            >
+              <ShieldCheck className="w-4 h-4 text-slate-500" />
+              <span>Syarat & Kebijakan Denda</span>
+            </button>
+
+            <button
+              onClick={() => handleNavToSection('faq')}
+              className="w-full text-left px-3.5 py-3 rounded-xl text-xs font-semibold text-[#12202F] hover:bg-slate-50 flex items-center gap-2.5 transition-all"
+            >
+              <HelpCircle className="w-4 h-4 text-slate-500" />
+              <span>Bantuan & FAQ</span>
+            </button>
+
+            <div className="pt-3 border-t border-slate-100 flex flex-col gap-2">
+              <button
+                onClick={() => {
+                  navigateTo(cart.length > 0 ? 'pesan' : 'katalog');
+                  setMobileMenuOpen(false);
+                }}
+                className="w-full py-3 text-center rounded-xl btn-primary text-xs font-bold shadow-sm active:scale-98"
+              >
+                Sewa Sepeda Sekarang
+              </button>
+
+              {isAdminAuthenticated && (
+                <div className="flex gap-2 pt-1">
+                  <button
+                    onClick={() => {
+                      navigateTo('dashboard');
+                      setMobileMenuOpen(false);
+                    }}
+                    className="flex-1 py-2.5 text-center rounded-xl bg-[#12202F] text-white text-xs font-bold flex items-center justify-center gap-1.5 active:scale-95"
+                  >
+                    <ShieldCheck className="w-4 h-4 text-[#4FC3C8]" />
+                    Dashboard Admin
+                  </button>
+                  <button
+                    onClick={() => {
+                      logoutAdmin();
+                      setMobileMenuOpen(false);
+                    }}
+                    className="px-4 py-2.5 text-center rounded-xl bg-rose-50 text-rose-700 text-xs font-bold active:scale-95"
+                  >
+                    Logout
+                  </button>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </header>
   );
 };
+

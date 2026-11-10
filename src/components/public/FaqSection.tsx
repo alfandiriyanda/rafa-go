@@ -4,7 +4,8 @@
  */
 
 import React, { useState } from 'react';
-import { ChevronDown, HelpCircle } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { ChevronDown, HelpCircle, MessageCircle } from 'lucide-react';
 
 interface FaqItem {
   q: string;
@@ -44,7 +45,13 @@ export const FaqSection: React.FC = () => {
   return (
     <section className="py-16 bg-[#FAFDFE] border-t border-[#E2EBF0]">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-        <div className="text-center max-w-xl mx-auto">
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+          className="text-center max-w-xl mx-auto"
+        >
           <span className="text-xs font-bold text-[#4FC3C8] uppercase tracking-wider bg-[#EBF9FA] px-3 py-1 rounded-full border border-[#4FC3C8]/30">
             Pertanyaan Populer
           </span>
@@ -52,41 +59,88 @@ export const FaqSection: React.FC = () => {
             Pertanyaan yang Sering Diajukan (FAQ)
           </h2>
           <p className="text-xs sm:text-sm text-[#5B7083] mt-1">
-            Jawaban lengkap seputar cara sewa, pembayaran, dan kebijakan operasional RAFA GO.
+            Jawaban lengkap seputar cara sewa, pembayaran, dan kebijakan operasional RAFA GO di CitraRaya City Jambi.
           </p>
-        </div>
+        </motion.div>
 
         <div className="space-y-3">
           {FAQS.map((faq, idx) => {
             const isOpen = openIdx === idx;
             return (
-              <div
+              <motion.div
                 key={idx}
-                className="bg-white rounded-2xl border border-[#E2EBF0] overflow-hidden transition-all shadow-xs"
+                initial={{ opacity: 0, y: 10 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.35, delay: idx * 0.05 }}
+                className={`bg-white rounded-2xl border transition-all shadow-xs overflow-hidden ${
+                  isOpen ? 'border-[#4FC3C8]/70 shadow-md ring-2 ring-[#4FC3C8]/10' : 'border-[#E2EBF0] hover:border-slate-300'
+                }`}
               >
                 <button
+                  type="button"
                   onClick={() => setOpenIdx(isOpen ? null : idx)}
-                  className="w-full p-5 text-left flex items-center justify-between gap-4 cursor-pointer hover:bg-slate-50 transition-colors"
+                  className="w-full p-5 text-left flex items-center justify-between gap-4 cursor-pointer hover:bg-slate-50/70 transition-colors"
                 >
-                  <span className="font-heading font-bold text-sm text-[#12202F]">
+                  <span className={`font-heading font-bold text-sm transition-colors ${isOpen ? 'text-[#00696D]' : 'text-[#12202F]'}`}>
                     {faq.q}
                   </span>
-                  <ChevronDown
-                    className={`w-4 h-4 text-[#4FC3C8] shrink-0 transition-transform duration-200 ${
-                      isOpen ? 'rotate-180' : ''
-                    }`}
-                  />
+                  <motion.div
+                    animate={{ rotate: isOpen ? 180 : 0 }}
+                    transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+                    className="p-1 rounded-full bg-slate-100 shrink-0"
+                  >
+                    <ChevronDown className="w-4 h-4 text-[#00696D]" />
+                  </motion.div>
                 </button>
 
-                {isOpen && (
-                  <div className="px-5 pb-5 pt-1 text-xs text-[#5B7083] leading-relaxed border-t border-slate-100">
-                    {faq.a}
-                  </div>
-                )}
-              </div>
+                <AnimatePresence initial={false}>
+                  {isOpen && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+                      className="overflow-hidden"
+                    >
+                      <div className="px-5 pb-5 pt-1 text-xs text-[#5B7083] leading-relaxed border-t border-slate-100">
+                        {faq.a}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.div>
             );
           })}
         </div>
+
+        {/* Live Help Card */}
+        <motion.div
+          whileHover={{ y: -2 }}
+          transition={{ duration: 0.2 }}
+          className="p-4 sm:p-5 rounded-2xl bg-white border border-[#E2EBF0] flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xs"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-[#EBF9FA] text-[#00696D] flex items-center justify-center shrink-0">
+              <HelpCircle className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-[#12202F]">Punya pertanyaan lain yang belum terjawab?</p>
+              <p className="text-[11px] text-[#5B7083]">Tim layanan pelanggan kami siap membantu via WhatsApp setiap hari pk 08.00 - 22.00 WIB.</p>
+            </div>
+          </div>
+          <motion.a
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
+            href="https://wa.me/62876653342?text=Halo%20Admin%20RAFA%20GO%2C%20saya%20ingin%20tanya%20seputar%20sewa%20sepeda"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-4 py-2 rounded-xl bg-[#EBF9FA] text-[#00696D] hover:bg-[#D4F3F5] text-xs font-bold flex items-center gap-1.5 shrink-0 transition-colors"
+          >
+            <MessageCircle className="w-4 h-4" />
+            <span>Tanya via WhatsApp</span>
+          </motion.a>
+        </motion.div>
       </div>
     </section>
   );

@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useMemo } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { useRental } from '../../lib/context/RentalContext';
 import { Bike, BikeCategorySlug } from '../../types/rental';
 import {
@@ -155,13 +156,20 @@ export const BikeCatalog: React.FC = () => {
           <div className="flex flex-wrap gap-2 pt-2 border-t border-slate-100">
             <button
               onClick={() => setSelectedCategory('all')}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+              className={`relative px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
                 selectedCategory === 'all'
-                  ? 'bg-[#12202F] text-white shadow-xs'
-                  : 'bg-slate-100 text-[#5B7083] hover:text-[#12202F]'
+                  ? 'text-white'
+                  : 'text-[#5B7083] hover:text-[#12202F] bg-slate-100/70 hover:bg-slate-100'
               }`}
             >
-              Semua Kategori (50)
+              {selectedCategory === 'all' && (
+                <motion.span
+                  layoutId="catalogActivePill"
+                  className="absolute inset-0 bg-[#12202F] rounded-lg shadow-xs"
+                  transition={{ type: 'spring', stiffness: 450, damping: 30 }}
+                />
+              )}
+              <span className="relative z-10">Semua Kategori (50)</span>
             </button>
             {categories.map((cat) => {
               const count = bikes.filter((b) => b.categorySlug === cat.slug).length;
@@ -170,15 +178,22 @@ export const BikeCatalog: React.FC = () => {
                 <button
                   key={cat.id}
                   onClick={() => setSelectedCategory(cat.slug)}
-                  className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+                  className={`relative px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer flex items-center gap-1.5 ${
                     isSelected
-                      ? 'bg-[#4FC3C8] text-[#12202F] shadow-xs'
-                      : 'bg-slate-100 text-[#5B7083] hover:text-[#12202F]'
+                      ? 'text-[#12202F]'
+                      : 'text-[#5B7083] hover:text-[#12202F] bg-slate-100/70 hover:bg-slate-100'
                   }`}
                 >
-                  <span>{cat.name}</span>
-                  <span className="text-[10px] opacity-75">({count})</span>
-                  <span className="text-[10px] opacity-90">• Rp{(cat.hourlyRate / 1000).toFixed(0)}k/j</span>
+                  {isSelected && (
+                    <motion.span
+                      layoutId="catalogActivePill"
+                      className="absolute inset-0 bg-[#4FC3C8] rounded-lg shadow-xs"
+                      transition={{ type: 'spring', stiffness: 450, damping: 30 }}
+                    />
+                  )}
+                  <span className="relative z-10 font-bold">{cat.name}</span>
+                  <span className="relative z-10 text-[10px] opacity-75">({count})</span>
+                  <span className="relative z-10 text-[10px] opacity-90">• Rp{(cat.hourlyRate / 1000).toFixed(0)}k/j</span>
                 </button>
               );
             })}
@@ -226,16 +241,18 @@ export const BikeCatalog: React.FC = () => {
               const isAvailable = bike.status === 'tersedia';
 
               return (
-                <div
+                <motion.div
                   key={bike.id}
-                  className="bg-white rounded-2xl border border-[#E2EBF0] overflow-hidden flex flex-col justify-between hover:shadow-lg transition-all duration-200 group"
+                  whileHover={{ y: -6 }}
+                  transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+                  className="bg-white rounded-2xl border border-[#E2EBF0] overflow-hidden flex flex-col justify-between hover:shadow-xl hover:border-[#4FC3C8]/40 transition-all duration-200 group"
                 >
                   {/* Image & Badges */}
                   <div className="relative aspect-4/3 overflow-hidden bg-slate-100">
                     <img
                       src={bike.image}
                       alt={bike.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-500"
                       loading="lazy"
                     />
 
@@ -277,7 +294,7 @@ export const BikeCatalog: React.FC = () => {
                   {/* Card Body */}
                   <div className="p-4 space-y-3 flex-1 flex flex-col justify-between">
                     <div>
-                      <h3 className="font-heading font-bold text-sm text-[#12202F] line-clamp-1 group-hover:text-[#4FC3C8] transition-colors">
+                      <h3 className="font-heading font-bold text-sm text-[#12202F] line-clamp-1 group-hover:text-[#00696D] transition-colors">
                         {bike.name}
                       </h3>
                       <p className="text-xs text-[#5B7083] mt-0.5">
@@ -300,34 +317,38 @@ export const BikeCatalog: React.FC = () => {
                         </span>
                       </div>
 
-                      {/* Action Buttons */}
+                      {/* Action Buttons with Micro-interactions */}
                       <div className="grid grid-cols-2 gap-2">
-                        <button
+                        <motion.button
+                          whileTap={{ scale: 0.95 }}
                           onClick={() => setSelectedBikeForDetail(bike)}
                           className="py-2 px-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-[#12202F] text-xs font-semibold flex items-center justify-center gap-1 cursor-pointer transition-colors"
                         >
                           <Eye className="w-3.5 h-3.5 text-slate-600" />
                           <span>Detail</span>
-                        </button>
+                        </motion.button>
 
                         {isAvailable ? (
                           inCart ? (
-                            <button
+                            <motion.button
+                              whileTap={{ scale: 0.95 }}
                               onClick={() => removeFromCart(bike.id)}
-                              className="py-2 px-2 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-800 text-xs font-bold flex items-center justify-center gap-1 cursor-pointer transition-colors"
+                              className="py-2 px-2 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-800 text-xs font-bold flex items-center justify-center gap-1 cursor-pointer transition-colors shadow-2xs"
                               title="Klik untuk hapus dari keranjang"
                             >
-                              <Check className="w-3.5 h-3.5 text-emerald-600" />
+                              <Check className="w-3.5 h-3.5 text-emerald-600 animate-in zoom-in-75" />
                               <span>Di Keranjang</span>
-                            </button>
+                            </motion.button>
                           ) : (
-                            <button
+                            <motion.button
+                              whileHover={{ scale: 1.02 }}
+                              whileTap={{ scale: 0.95 }}
                               onClick={() => addToCart(bike)}
                               className="py-2 px-2 rounded-xl btn-primary text-xs font-bold flex items-center justify-center gap-1 cursor-pointer shadow-xs"
                             >
                               <Plus className="w-3.5 h-3.5" />
                               <span>+ Sewa</span>
-                            </button>
+                            </motion.button>
                           )
                         ) : (
                           <button
@@ -340,39 +361,49 @@ export const BikeCatalog: React.FC = () => {
                       </div>
                     </div>
                   </div>
-                </div>
+                </motion.div>
               );
             })}
           </div>
         )}
 
-        {/* Floating Checkout Bar when Cart has items */}
-        {cart.length > 0 && (
-          <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-30 w-full max-w-xl px-4 animate-in slide-in-from-bottom duration-300">
-            <div className="bg-[#12202F] text-white p-4 rounded-2xl shadow-2xl border border-slate-700 flex items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-[#4FC3C8] text-[#12202F] flex items-center justify-center font-bold">
-                  <ShoppingBag className="w-5 h-5" />
+        {/* Floating Checkout Bar when Cart has items with smooth Spring Animation */}
+        <AnimatePresence>
+          {cart.length > 0 && (
+            <motion.div
+              initial={{ y: 80, opacity: 0, x: '-50%' }}
+              animate={{ y: 0, opacity: 1, x: '-50%' }}
+              exit={{ y: 80, opacity: 0, x: '-50%' }}
+              transition={{ type: 'spring', stiffness: 400, damping: 28 }}
+              className="fixed bottom-6 left-1/2 z-30 w-full max-w-xl px-4 pointer-events-auto"
+            >
+              <div className="bg-[#12202F]/95 backdrop-blur-md text-white p-4 rounded-2xl shadow-2xl border border-slate-700/80 flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-[#4FC3C8] text-[#12202F] flex items-center justify-center font-bold shadow-md">
+                    <ShoppingBag className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-white">
+                      {cart.length} Sepeda Siap Dipesan
+                    </p>
+                    <p className="text-[11px] text-[#4FC3C8] font-mono">
+                      {cart.map((i) => i.bike.code).join(', ')}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-xs font-bold text-white">
-                    {cart.length} Sepeda Siap Dipesan
-                  </p>
-                  <p className="text-[11px] text-[#4FC3C8]">
-                    {cart.map((i) => i.bike.code).join(', ')}
-                  </p>
-                </div>
+                <motion.button
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.96 }}
+                  onClick={() => navigateTo('pesan')}
+                  className="btn-primary px-5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 cursor-pointer shadow-md"
+                >
+                  <span>Isi Form Sewa</span>
+                  <ArrowRight className="w-4 h-4" />
+                </motion.button>
               </div>
-              <button
-                onClick={() => navigateTo('pesan')}
-                className="btn-primary px-5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 cursor-pointer shadow-md"
-              >
-                <span>Isi Form Sewa</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-        )}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );

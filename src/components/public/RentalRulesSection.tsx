@@ -4,6 +4,7 @@
  */
 
 import React from 'react';
+import { motion } from 'motion/react';
 import { useRental } from '../../lib/context/RentalContext';
 import {
   Search,
@@ -53,7 +54,13 @@ export const RentalRulesSection: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
         {/* Section 1: Cara Sewa 4 Langkah */}
         <div>
-          <div className="text-center max-w-2xl mx-auto mb-12">
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            className="text-center max-w-2xl mx-auto mb-12"
+          >
             <span className="text-xs font-bold text-[#4FC3C8] uppercase tracking-wider bg-[#EBF9FA] px-3 py-1 rounded-full border border-[#4FC3C8]/30">
               Alur Sangat Simpel
             </span>
@@ -63,27 +70,32 @@ export const RentalRulesSection: React.FC = () => {
             <p className="text-sm text-[#5B7083] mt-2">
               Tidak perlu antre panjang dan tanpa registrasi akun yang rumit.
             </p>
-          </div>
+          </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {steps.map((step) => (
-              <div
+            {steps.map((step, idx) => (
+              <motion.div
                 key={step.num}
-                className="p-6 rounded-2xl bg-[#F4F8FA] border border-[#E2EBF0] hover:border-[#4FC3C8]/50 transition-all hover:-translate-y-1 relative group"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4, delay: idx * 0.1, ease: [0.16, 1, 0.3, 1] }}
+                whileHover={{ y: -6 }}
+                className="p-6 rounded-2xl bg-[#F4F8FA] border border-[#E2EBF0] hover:border-[#4FC3C8]/60 hover:bg-[#FAFDFE] hover:shadow-xl transition-all duration-300 relative group cursor-default"
               >
-                <div className="w-12 h-12 rounded-xl bg-[#4FC3C8] flex items-center justify-center font-bold text-[#12202F] shadow-sm mb-4">
+                <div className="w-12 h-12 rounded-xl bg-[#4FC3C8] flex items-center justify-center font-bold text-[#12202F] shadow-sm mb-4 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
                   {step.icon}
                 </div>
-                <span className="absolute top-6 right-6 font-heading font-black text-3xl text-slate-200 group-hover:text-[#4FC3C8]/20 transition-colors">
+                <span className="absolute top-6 right-6 font-heading font-black text-3xl text-slate-200 group-hover:text-[#4FC3C8]/30 transition-colors">
                   {step.num}
                 </span>
-                <h3 className="font-heading font-bold text-base text-[#12202F] mb-1.5">
+                <h3 className="font-heading font-bold text-base text-[#12202F] mb-1.5 group-hover:text-[#00696D] transition-colors">
                   {step.title}
                 </h3>
                 <p className="text-xs text-[#5B7083] leading-relaxed">
                   {step.desc}
                 </p>
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>
@@ -102,23 +114,30 @@ export const RentalRulesSection: React.FC = () => {
                 Tarif flat per jam tanpa biaya tersembunyi. Termasuk fasilitas helm & gembok.
               </p>
             </div>
-            <button
+            <motion.button
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
               onClick={() => navigateTo('katalog')}
-              className="btn-primary px-5 py-2.5 rounded-xl text-xs font-bold self-start md:self-auto cursor-pointer"
+              className="btn-primary px-5 py-2.5 rounded-xl text-xs font-bold self-start md:self-auto cursor-pointer shadow-sm"
             >
               Buka Katalog Sepeda
-            </button>
+            </motion.button>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-            {categories.map((cat) => (
-              <div
+            {categories.map((cat, idx) => (
+              <motion.div
                 key={cat.id}
-                className="bg-white rounded-2xl p-5 border border-[#E2EBF0] flex flex-col justify-between hover:shadow-md transition-shadow"
+                initial={{ opacity: 0, y: 15 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4, delay: idx * 0.08 }}
+                whileHover={{ y: -5 }}
+                className="bg-white rounded-2xl p-5 border border-[#E2EBF0] hover:border-[#4FC3C8]/50 flex flex-col justify-between hover:shadow-lg transition-all duration-300 group"
               >
                 <div>
                   <div className="flex items-center justify-between mb-3">
-                    <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-[#EBF9FA] text-[#12202F]">
+                    <span className="text-xs font-bold px-2.5 py-0.5 rounded-md bg-[#EBF9FA] text-[#00696D] group-hover:bg-[#4FC3C8] group-hover:text-[#12202F] transition-colors">
                       {cat.name}
                     </span>
                   </div>
@@ -128,12 +147,12 @@ export const RentalRulesSection: React.FC = () => {
                     </span>
                     <span className="text-xs text-[#5B7083]"> / jam</span>
                   </div>
-                  <p className="text-xs text-[#5B7083] mb-4 leading-relaxed">
+                  <p className="text-xs text-[#5B7083] mb-4 leading-relaxed line-clamp-2">
                     {cat.description}
                   </p>
                   <ul className="text-[11px] space-y-1.5 text-slate-600 mb-4 border-t border-slate-100 pt-3">
-                    {cat.features.slice(0, 3).map((feat, idx) => (
-                      <li key={idx} className="flex items-center gap-1.5">
+                    {cat.features.slice(0, 3).map((feat, fIdx) => (
+                      <li key={fIdx} className="flex items-center gap-1.5">
                         <Check className="w-3.5 h-3.5 text-[#4FC3C8] shrink-0" />
                         <span className="truncate">{feat}</span>
                       </li>
@@ -141,13 +160,15 @@ export const RentalRulesSection: React.FC = () => {
                   </ul>
                 </div>
 
-                <button
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.96 }}
                   onClick={() => navigateTo('katalog', { category: cat.slug })}
-                  className="w-full py-2 rounded-lg bg-slate-100 hover:bg-[#EBF9FA] hover:text-[#12202F] text-[#12202F] text-xs font-semibold transition-colors cursor-pointer text-center"
+                  className="w-full py-2 rounded-lg bg-slate-100 hover:bg-[#EBF9FA] hover:text-[#00696D] text-[#12202F] text-xs font-semibold transition-colors cursor-pointer text-center"
                 >
                   Pilih {cat.name}
-                </button>
-              </div>
+                </motion.button>
+              </motion.div>
             ))}
           </div>
         </div>
@@ -155,8 +176,12 @@ export const RentalRulesSection: React.FC = () => {
         {/* Section 3: Kebijakan Sewa, Denda & Refund Penting */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Card 1: Denda Keterlambatan */}
-          <div className="p-6 rounded-2xl bg-amber-50/60 border border-amber-200/80 space-y-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center font-bold">
+          <motion.div
+            whileHover={{ y: -4 }}
+            transition={{ duration: 0.2 }}
+            className="p-6 rounded-2xl bg-amber-50/60 border border-amber-200/80 space-y-3 hover:shadow-md transition-shadow group"
+          >
+            <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center font-bold group-hover:scale-110 transition-transform">
               <Clock className="w-5 h-5" />
             </div>
             <h3 className="font-heading font-bold text-base text-amber-950">
@@ -173,11 +198,15 @@ export const RentalRulesSection: React.FC = () => {
                 • Denda wajib diselesaikan saat serah terima sepeda sebelum KTP fisik dikembalikan.
               </li>
             </ul>
-          </div>
+          </motion.div>
 
           {/* Card 2: Jaminan KTP Fisik */}
-          <div className="p-6 rounded-2xl bg-cyan-50/60 border border-cyan-200/80 space-y-3">
-            <div className="w-10 h-10 rounded-xl bg-cyan-100 text-cyan-900 flex items-center justify-center font-bold">
+          <motion.div
+            whileHover={{ y: -4 }}
+            transition={{ duration: 0.2 }}
+            className="p-6 rounded-2xl bg-cyan-50/60 border border-cyan-200/80 space-y-3 hover:shadow-md transition-shadow group"
+          >
+            <div className="w-10 h-10 rounded-xl bg-cyan-100 text-cyan-900 flex items-center justify-center font-bold group-hover:scale-110 transition-transform">
               <IdCard className="w-5 h-5" />
             </div>
             <h3 className="font-heading font-bold text-base text-cyan-950">
@@ -194,11 +223,15 @@ export const RentalRulesSection: React.FC = () => {
                 • Petugas mengambil 1 foto dokumentasi Anda di atas sepeda sebelum gowes dimulai.
               </li>
             </ul>
-          </div>
+          </motion.div>
 
           {/* Card 3: Kebijakan Pembatalan & Refund */}
-          <div className="p-6 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
-            <div className="w-10 h-10 rounded-xl bg-slate-200 text-slate-800 flex items-center justify-center font-bold">
+          <motion.div
+            whileHover={{ y: -4 }}
+            transition={{ duration: 0.2 }}
+            className="p-6 rounded-2xl bg-slate-50 border border-slate-200 space-y-3 hover:shadow-md transition-shadow group"
+          >
+            <div className="w-10 h-10 rounded-xl bg-slate-200 text-slate-800 flex items-center justify-center font-bold group-hover:scale-110 transition-transform">
               <RotateCcw className="w-5 h-5" />
             </div>
             <h3 className="font-heading font-bold text-base text-slate-900">
@@ -215,7 +248,7 @@ export const RentalRulesSection: React.FC = () => {
                 • <strong>Kurang dari 2 jam / No-show:</strong> Tidak dapat dibatalkan / refund 0%.
               </li>
             </ul>
-          </div>
+          </motion.div>
         </div>
       </div>
     </section>

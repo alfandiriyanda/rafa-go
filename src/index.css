@@ -30,14 +30,61 @@
   color: #12202F;
   font-family: 'Poppins', sans-serif;
   font-weight: 600;
-  transition: all 0.2s ease;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
 }
 .btn-primary:hover {
   background-color: #3BB1B6;
-  box-shadow: 0 4px 14px rgba(79, 195, 200, 0.35);
+  box-shadow: 0 6px 20px rgba(79, 195, 200, 0.4);
+  transform: translateY(-1px);
 }
 .btn-primary:active {
-  transform: scale(0.98);
+  transform: translateY(1px) scale(0.98);
+}
+
+/* Micro-interaction & animation helper classes */
+@keyframes floatGentle {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.08);
+  }
+}
+
+.animate-float-gentle {
+  animation: floatGentle 5s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 2.5s ease-in-out infinite;
+}
+
+.interactive-card {
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease;
+}
+.interactive-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 32px rgba(18, 32, 47, 0.08);
+}
+
+.tap-effect {
+  transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.tap-effect:active {
+  transform: scale(0.96);
 }
 
 /* Print styling for bike physical tag cards */

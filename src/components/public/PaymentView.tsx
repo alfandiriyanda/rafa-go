@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { useRental } from '../../lib/context/RentalContext';
 import {
   QrCode,
@@ -226,42 +227,66 @@ export const PaymentView: React.FC = () => {
               Pilih Rekening Tujuan Transfer:
             </h2>
 
-            {/* Tab Buttons */}
+            {/* Tab Buttons with Animated Layout Indicator */}
             <div className="grid grid-cols-3 gap-2">
               <button
+                type="button"
                 onClick={() => setActiveTab('qris')}
-                className={`py-2.5 rounded-xl text-xs font-bold flex flex-col items-center justify-center gap-1 border transition-all cursor-pointer ${
+                className={`relative py-2.5 rounded-xl text-xs font-bold flex flex-col items-center justify-center gap-1 border transition-colors cursor-pointer active:scale-95 ${
                   activeTab === 'qris'
-                    ? 'bg-[#EBF9FA] border-[#4FC3C8] text-[#12202F]'
+                    ? 'border-[#00696D] text-[#00696D]'
                     : 'bg-slate-50 border-slate-200 text-[#5B7083] hover:bg-slate-100'
                 }`}
               >
-                <QrCode className="w-4 h-4 text-[#4FC3C8]" />
-                <span>QRIS Resmi</span>
+                {activeTab === 'qris' && (
+                  <motion.span
+                    layoutId="activePaymentTab"
+                    className="absolute inset-0 bg-[#EBF9FA] rounded-xl -z-0"
+                    transition={{ type: 'spring', stiffness: 450, damping: 30 }}
+                  />
+                )}
+                <QrCode className="w-4 h-4 text-[#00696D] relative z-10" />
+                <span className="relative z-10">QRIS Resmi</span>
               </button>
 
               <button
+                type="button"
                 onClick={() => setActiveTab('dana')}
-                className={`py-2.5 rounded-xl text-xs font-bold flex flex-col items-center justify-center gap-1 border transition-all cursor-pointer ${
+                className={`relative py-2.5 rounded-xl text-xs font-bold flex flex-col items-center justify-center gap-1 border transition-colors cursor-pointer active:scale-95 ${
                   activeTab === 'dana'
-                    ? 'bg-[#EBF9FA] border-[#4FC3C8] text-[#12202F]'
+                    ? 'border-[#00696D] text-[#00696D]'
                     : 'bg-slate-50 border-slate-200 text-[#5B7083] hover:bg-slate-100'
                 }`}
               >
-                <Wallet className="w-4 h-4 text-[#4FC3C8]" />
-                <span>DANA</span>
+                {activeTab === 'dana' && (
+                  <motion.span
+                    layoutId="activePaymentTab"
+                    className="absolute inset-0 bg-[#EBF9FA] rounded-xl -z-0"
+                    transition={{ type: 'spring', stiffness: 450, damping: 30 }}
+                  />
+                )}
+                <Wallet className="w-4 h-4 text-[#00696D] relative z-10" />
+                <span className="relative z-10">DANA</span>
               </button>
 
               <button
+                type="button"
                 onClick={() => setActiveTab('seabank')}
-                className={`py-2.5 rounded-xl text-xs font-bold flex flex-col items-center justify-center gap-1 border transition-all cursor-pointer ${
+                className={`relative py-2.5 rounded-xl text-xs font-bold flex flex-col items-center justify-center gap-1 border transition-colors cursor-pointer active:scale-95 ${
                   activeTab === 'seabank'
-                    ? 'bg-[#EBF9FA] border-[#4FC3C8] text-[#12202F]'
+                    ? 'border-[#00696D] text-[#00696D]'
                     : 'bg-slate-50 border-slate-200 text-[#5B7083] hover:bg-slate-100'
                 }`}
               >
-                <Building2 className="w-4 h-4 text-[#4FC3C8]" />
-                <span>SeaBank</span>
+                {activeTab === 'seabank' && (
+                  <motion.span
+                    layoutId="activePaymentTab"
+                    className="absolute inset-0 bg-[#EBF9FA] rounded-xl -z-0"
+                    transition={{ type: 'spring', stiffness: 450, damping: 30 }}
+                  />
+                )}
+                <Building2 className="w-4 h-4 text-[#00696D] relative z-10" />
+                <span className="relative z-10">SeaBank</span>
               </button>
             </div>
 
@@ -472,10 +497,13 @@ export const PaymentView: React.FC = () => {
               </div>
 
               {/* Submit Button */}
-              <button
+              {/* Submit Button with Micro-interaction */}
+              <motion.button
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.98 }}
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full py-3.5 rounded-xl btn-primary text-xs font-bold flex items-center justify-center gap-2 shadow-md cursor-pointer disabled:opacity-50"
+                className="w-full py-3.5 rounded-xl btn-primary text-xs font-bold flex items-center justify-center gap-2 shadow-md cursor-pointer disabled:opacity-50 transition-shadow"
               >
                 {isSubmitting ? (
                   <span>Mengirimkan Bukti...</span>
@@ -485,7 +513,7 @@ export const PaymentView: React.FC = () => {
                     <span>Kirim Bukti Pembayaran ke Admin</span>
                   </>
                 )}
-              </button>
+              </motion.button>
 
               <div className="pt-2 text-center">
                 <a
