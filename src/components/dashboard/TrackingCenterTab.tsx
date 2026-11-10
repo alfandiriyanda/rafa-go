@@ -31,6 +31,8 @@ import {
   Layers,
   Smartphone,
   Eye,
+  Trash2,
+  X,
 } from 'lucide-react';
 
 interface LiveScanData {
@@ -118,6 +120,9 @@ export const TrackingCenterTab: React.FC = () => {
           };
           setLatestActiveScan(latest);
         }
+      } else {
+        setLiveScansMap({});
+        setLatestActiveScan(null);
       }
     } catch (err) {
       console.error('fetchScansFromSupabase error:', err);
@@ -449,6 +454,73 @@ export const TrackingCenterTab: React.FC = () => {
     });
   };
 
+  // Sesuaikan zoom peta agar seluruh titik (Hub CRC dan semua HP aktif) terlihat sekaligus di layar
+  const handleFitAllBounds = () => {
+    if (!mapInstanceRef.current) return;
+    const points: L.LatLngExpression[] = [[CITRARAYA_JAMBI_CENTER.lat, CITRARAYA_JAMBI_CENTER.lng]];
+    Object.values(liveScansMap).forEach((scan) => {
+      points.push([scan.lat, scan.lng]);
+    });
+
+    if (points.length === 1) {
+      mapInstanceRef.current.flyTo([CITRARAYA_JAMBI_CENTER.lat, CITRARAYA_JAMBI_CENTER.lng], 15, { duration: 1 });
+    } else {
+      const bounds = L.latLngBounds(points);
+      mapInstanceRef.current.fitBounds(bounds, { padding: [50, 50], maxZoom: 16 });
+    }
+  };
+
+  // Putuskan dan hapus sinyal GPS untuk satu unit sepeda tertentu (kembalikan ke Hub)
+  const handleDisconnectBike = async (bikeCode: string) => {
+    const cleanCode = bikeCode.toUpperCase();
+    const client = getSupabaseClient();
+    if (client) {
+      try {
+        await client.from('qr_scans').delete().eq('bike_code', cleanCode);
+        console.log('✅ Berhasil menghapus sinyal sepeda:', cleanCode);
+      } catch (err) {
+        console.warn('Gagal menghapus scan:', err);
+      }
+    }
+
+    setLiveScansMap((prev) => {
+      const next = { ...prev };
+      delete next[cleanCode];
+      return next;
+    });
+
+    if (latestActiveScan && latestActiveScan.bikeCode === cleanCode) {
+      setLatestActiveScan(null);
+    }
+
+    await fetchScansFromSupabase();
+  };
+
+  // Putuskan dan hapus SEMUA sinyal GPS yang terhubung (kembalikan semua armada ke Stasiun Hub)
+  const handleResetAllScans = async () => {
+    if (
+      !window.confirm(
+        'Yakin ingin memutuskan semua koneksi GPS HP? Semua armada sepeda akan kembali standby di Stasiun Hub RAFA GO.'
+      )
+    ) {
+      return;
+    }
+
+    const client = getSupabaseClient();
+    if (client) {
+      try {
+        await client.from('qr_scans').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+        console.log('✅ Seluruh sinyal QR scans telah dibersihkan');
+      } catch (err) {
+        console.warn('Gagal menghapus seluruh scan:', err);
+      }
+    }
+
+    setLiveScansMap({});
+    setLatestActiveScan(null);
+    await fetchScansFromSupabase();
+  };
+
   return (
     <div className="space-y-6">
       {/* Top Header & Supabase Live Status Bar */}
@@ -468,7 +540,7 @@ export const TrackingCenterTab: React.FC = () => {
             <span>Live GPS Tracking Armada Sepeda</span>
           </h2>
           <p className="text-xs text-[#5B7083] mt-0.5">
-            Menerima transmisi titik koordinat GPS dari HP konsumen saat QR discan dan memantau radius geofence CitraRaya City Jambi (2.5 km).
+            Menerima transmisi titik koordinat GPS dari HP konsumen saat QR discan dan memantau rute perjalanan secara real-time.
           </p>
         </div>
 
@@ -485,12 +557,32 @@ export const TrackingCenterTab: React.FC = () => {
           )}
 
           <button
+            onClick={handleFitAllBounds}
+            className="px-3.5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-[#12202F] text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-colors"
+            title="Tampilkan seluruh posisi armada dan stasiun hub di layar"
+          >
+            <Maximize2 className="w-4 h-4 text-[#00696D]" />
+            <span>Lihat Semua Posisi</span>
+          </button>
+
+          <button
             onClick={handleResetToCitraRaya}
             className="px-3.5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-[#12202F] text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-colors"
           >
             <Compass className="w-4 h-4 text-[#00696D]" />
             <span>Pusatkan ke CitraRaya</span>
           </button>
+
+          {livePhonesCount > 0 && (
+            <button
+              onClick={handleResetAllScans}
+              className="px-3.5 py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-colors shadow-2xs"
+              title="Putuskan semua device HP yang terhubung dan kembalikan ke Hub"
+            >
+              <Trash2 className="w-4 h-4" />
+              <span>Reset Semua Device ({livePhonesCount})</span>
+            </button>
+          )}
 
           <button
             onClick={fetchScansFromSupabase}
@@ -523,12 +615,23 @@ export const TrackingCenterTab: React.FC = () => {
               </p>
             </div>
           </div>
-          <button
-            onClick={handleFocusLatestPhone}
-            className="px-4 py-2 rounded-xl bg-sky-600 text-white text-xs font-bold hover:bg-sky-700 cursor-pointer shrink-0 shadow-xs"
-          >
-            Lihat Posisi di Peta →
-          </button>
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={handleFocusLatestPhone}
+              className="px-4 py-2 rounded-xl bg-sky-600 text-white text-xs font-bold hover:bg-sky-700 cursor-pointer shadow-xs"
+            >
+              Lihat Posisi di Peta →
+            </button>
+            <button
+              type="button"
+              onClick={() => handleDisconnectBike(latestActiveScan.bikeCode)}
+              className="px-3 py-2 rounded-xl bg-white hover:bg-rose-50 text-rose-700 border border-rose-300 text-xs font-bold flex items-center gap-1 cursor-pointer transition-colors shadow-2xs"
+              title="Putuskan koneksi HP ini"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              <span>Putuskan</span>
+            </button>
+          </div>
         </div>
       )}
 
@@ -776,6 +879,17 @@ export const TrackingCenterTab: React.FC = () => {
                   </div>
                 </div>
               )}
+
+              {selectedBike.isLivePhoneConnected && (
+                <button
+                  type="button"
+                  onClick={() => handleDisconnectBike(selectedBike.code)}
+                  className="w-full py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-colors shadow-2xs mt-2"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>Putuskan &amp; Hapus Sinyal Device Ini</span>
+                </button>
+              )}
             </div>
           )}
 
@@ -824,21 +938,36 @@ export const TrackingCenterTab: React.FC = () => {
                       <span className="font-mono font-bold text-xs text-[#12202F]">
                         {bike.code}
                       </span>
-                      <span
-                        className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${
-                          isOut
-                            ? 'bg-rose-600 text-white'
+                      <div className="flex items-center gap-1.5">
+                        <span
+                          className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${
+                            isOut
+                              ? 'bg-rose-600 text-white'
+                              : isPhone
+                              ? 'bg-sky-600 text-white'
+                              : 'bg-emerald-100 text-emerald-800'
+                          }`}
+                        >
+                          {isOut
+                            ? '⚠️ LUAR BATAS'
                             : isPhone
-                            ? 'bg-sky-600 text-white'
-                            : 'bg-emerald-100 text-emerald-800'
-                        }`}
-                      >
-                        {isOut
-                          ? '⚠️ LUAR BATAS'
-                          : isPhone
-                          ? '📱 HP TERHUBUNG'
-                          : 'STANDBY'}
-                      </span>
+                            ? '📱 HP TERHUBUNG'
+                            : 'STANDBY'}
+                        </span>
+                        {isPhone && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDisconnectBike(bike.code);
+                            }}
+                            className="p-1 rounded-md text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                            title={`Putuskan koneksi device ${bike.code}`}
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
                     </div>
 
                     <p className="font-semibold text-slate-800 truncate">{bike.name}</p>

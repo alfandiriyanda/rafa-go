@@ -65,7 +65,7 @@ export const QRScanView: React.FC = () => {
 
   // Status GPS Tracking
   const [gpsStatus, setGpsStatus] = useState<
-    'prompt' | 'requesting' | 'active' | 'denied' | 'hardware_off'
+    'prompt' | 'requesting' | 'active' | 'denied' | 'hardware_off' | 'disconnected'
   >('prompt');
   const [gpsError, setGpsError] = useState<string | null>(null);
   const [currentCoords, setCurrentCoords] = useState<{
@@ -83,7 +83,28 @@ export const QRScanView: React.FC = () => {
   const watchIdRef = useRef<number | null>(null);
   const pingIntervalRef = useRef<any>(null);
 
-  // Evaluasi Geofence CitraRaya City Jambi
+  // Fungsi memutuskan koneksi GPS HP dan mereset status sepeda di Supabase
+  const handleDisconnectGps = async () => {
+    if (pingIntervalRef.current) clearInterval(pingIntervalRef.current);
+    if (watchIdRef.current !== null && typeof navigator !== 'undefined' && navigator.geolocation) {
+      navigator.geolocation.clearWatch(watchIdRef.current);
+    }
+
+    const client = getSupabaseClient();
+    if (client) {
+      try {
+        await client.from('qr_scans').delete().eq('bike_code', bike.code);
+        console.log('✅ Sinyal device diputuskan dari Supabase:', bike.code);
+      } catch (err) {
+        console.warn('Gagal menghapus scan dari Supabase:', err);
+      }
+    }
+
+    setCurrentCoords(null);
+    setGpsStatus('disconnected');
+  };
+
+  // Evaluasi Geofence CitraRaya City Jambi (informatif, tidak membatasi lokasi)
   const geofence = currentCoords
     ? checkCitraRayaGeofence(currentCoords.lat, currentCoords.lng)
     : bike.currentLocation
@@ -480,7 +501,44 @@ export const QRScanView: React.FC = () => {
           </div>
         )}
 
-        {/* 5. KONDISI: GPS BERHASIL TERHUBUNG & LIVE TRANSMITTING */}
+        {/* KONDISI: GPS BERHASIL DIPUTUSKAN (DISCONNECTED) */}
+        {gpsStatus === 'disconnected' && (
+          <div className="p-6 rounded-3xl bg-emerald-50 border-2 border-emerald-400 text-emerald-950 space-y-4 shadow-sm text-center animate-in fade-in">
+            <div className="w-14 h-14 rounded-2xl bg-white text-emerald-600 flex items-center justify-center mx-auto border border-emerald-300 shadow-xs">
+              <CheckCircle2 className="w-7 h-7" />
+            </div>
+            <div>
+              <span className="text-[11px] font-bold text-emerald-700 uppercase tracking-wider block">
+                Sesi Selesai
+              </span>
+              <h3 className="font-heading font-black text-lg text-[#12202F] mt-0.5">
+                Koneksi GPS HP Berhasil Diputuskan
+              </h3>
+              <p className="text-xs text-slate-600 leading-relaxed max-w-sm mx-auto mt-1">
+                Sinyal tracking sepeda <strong className="text-[#12202F]">[{bike.code}]</strong> telah dinonaktifkan dan unit telah dikembalikan ke status <em>Standby</em> di Stasiun Hub.
+              </p>
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-2 pt-1">
+              <button
+                type="button"
+                onClick={startGpsTracking}
+                className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-[#00696D] hover:bg-[#005256] text-white text-xs font-bold cursor-pointer transition-colors"
+              >
+                Hubungkan Kembali GPS
+              </button>
+              <button
+                type="button"
+                onClick={() => navigateTo('home')}
+                className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-700 text-xs font-bold hover:bg-slate-50 cursor-pointer"
+              >
+                Kembali ke Beranda
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* 5. KONDISI: GPS BERHASIL TERHUBUNG & LIVE TRANSMITTING (BEBAS DI MANA PUN) */}
         {gpsStatus === 'active' && currentCoords && (
           <div className="space-y-3 animate-in fade-in">
             {/* Success Status Banner */}
@@ -508,44 +566,31 @@ export const QRScanView: React.FC = () => {
               </p>
             </div>
 
-            {/* Geofence Alert Check */}
+            {/* Status Lokasi Ramah & Fleksibel (Bebas di Mana Saja) */}
             {geofence && (
               <div
-                className={`p-4 rounded-2xl border-2 space-y-1.5 shadow-xs ${
+                className={`p-3.5 rounded-2xl border flex items-center justify-between gap-3 shadow-2xs ${
                   geofence.isInside
                     ? 'bg-[#EBF9FA] border-[#4FC3C8] text-[#00696D]'
-                    : 'bg-rose-50 border-rose-500 text-rose-950 animate-pulse'
+                    : 'bg-slate-50 border-slate-200 text-slate-700'
                 }`}
               >
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-xs flex items-center gap-1.5">
-                    {geofence.isInside ? (
-                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                    ) : (
-                      <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
-                    )}
-                    <span>
+                <div className="flex items-center gap-2 min-w-0">
+                  <MapPin className="w-4 h-4 text-[#00696D] shrink-0" />
+                  <div className="truncate">
+                    <span className="font-bold text-xs block text-[#12202F]">
                       {geofence.isInside
-                        ? 'ZONA AMAN OPERASIONAL CITRARAYA'
-                        : '⚠️ DI LUAR KAWASAN SEWA RESMI!'}
+                        ? 'Zona Kawasan CitraRaya City Jambi'
+                        : 'Area Gowes Bebas / Sekitar Jambi'}
                     </span>
-                  </span>
-                  <span
-                    className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                      geofence.isInside
-                        ? 'bg-emerald-100 text-emerald-900'
-                        : 'bg-rose-600 text-white'
-                    }`}
-                  >
-                    Radius: 2.5 km
-                  </span>
+                    <span className="text-[11px] text-slate-500">
+                      Jarak: {geofence.formattedDistance} dari Stasiun Pusat Hub
+                    </span>
+                  </div>
                 </div>
-
-                <p className="text-xs leading-relaxed">
-                  {geofence.isInside
-                    ? `Kamu berada di dalam area sewa CitraRaya City Jambi. Jarak dari Boulevard Utama: ${geofence.formattedDistance}.`
-                    : `Posisi Anda terdeteksi ${geofence.formattedDistance} dari pusat CitraRaya City Jambi. Harap kembali ke area Boulevard / Danau CitraRaya.`}
-                </p>
+                <span className="text-[10px] font-bold px-2 py-1 rounded-lg bg-white border border-slate-200 shrink-0 text-slate-700">
+                  Terlacak Live
+                </span>
               </div>
             )}
 
@@ -598,8 +643,10 @@ export const QRScanView: React.FC = () => {
                 </div>
               </div>
 
-              <div className="pt-1">
+              {/* Action Buttons: Manual Ping & Disconnect */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
                 <button
+                  type="button"
                   onClick={() =>
                     sendLocationPing(
                       currentCoords.lat,
@@ -609,10 +656,19 @@ export const QRScanView: React.FC = () => {
                       currentCoords.address
                     )
                   }
-                  className="w-full py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer shadow-sm transition-all"
+                  className="py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
                 >
                   <RefreshCw className="w-3.5 h-3.5" />
-                  <span>Kirim Sinyal GPS Sekarang (Manual Ping)</span>
+                  <span>Kirim Ulang Titik GPS</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleDisconnectGps}
+                  className="py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+                >
+                  <Lock className="w-3.5 h-3.5" />
+                  <span>Selesai &amp; Putuskan GPS</span>
                 </button>
               </div>
             </div>
@@ -659,9 +715,9 @@ export const QRScanView: React.FC = () => {
                   onClick={() =>
                     handleSimulateLocation(-1.67, 103.52, 'Luar Batas (Simulasi Alarm)')
                   }
-                  className="py-1.5 px-2 rounded-lg bg-rose-50 hover:bg-rose-100 text-[11px] font-bold text-rose-700 border border-rose-200 text-left truncate cursor-pointer shadow-2xs"
+                  className="py-1.5 px-2 rounded-lg bg-amber-50 hover:bg-amber-100 text-[11px] font-bold text-amber-800 border border-amber-200 text-left truncate cursor-pointer shadow-2xs"
                 >
-                  ⚠️ 4. Luar Batas (Alarm)
+                  🗺️ 4. Titik Luar Radius
                 </button>
               </div>
             </div>
