@@ -1,0 +1,64 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --primary: #4FC3C8;
+    --primary-hover: #3BB1B6;
+    --primary-light: #EBF9FA;
+    --ink: #12202F;
+    --ink-muted: #5B7083;
+    --surface: #FFFFFF;
+    --surface-alt: #F4F8FA;
+    --border-color: #E2EBF0;
+  }
+
+  body {
+    font-family: 'Open Sans', system-ui, -apple-system, sans-serif;
+    color: var(--ink);
+    background-color: #FAFDFE;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6, .font-heading {
+    font-family: 'Poppins', system-ui, -apple-system, sans-serif;
+  }
+}
+
+/* Custom aqua button text discipline: text must be ink dark, not white */
+.btn-primary {
+  background-color: #4FC3C8;
+  color: #12202F;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+.btn-primary:hover {
+  background-color: #3BB1B6;
+  box-shadow: 0 4px 14px rgba(79, 195, 200, 0.35);
+}
+.btn-primary:active {
+  transform: scale(0.98);
+}
+
+/* Print styling for bike physical tag cards */
+@media print {
+  body * {
+    visibility: hidden !important;
+  }
+  #printable-qr-tag, #printable-qr-tag * {
+    visibility: visible !important;
+  }
+  #printable-qr-tag {
+    position: fixed !important;
+    left: 50% !important;
+    top: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    width: 320px !important;
+    border: 2px dashed #0f172a !important;
+    padding: 24px !important;
+    background: #ffffff !important;
+    box-shadow: none !important;
+  }
+}
+
+

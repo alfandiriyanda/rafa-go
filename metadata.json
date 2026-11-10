@@ -1,0 +1,10 @@
+{
+  "name": "Remix RAFA GO — Rental Sepeda Per Jam",
+  "description": "Sistem rental sepeda per jam berbasis website untuk wisatawan dan warga lokal di Indonesia dengan katalog real-time, pemesanan tanpa akun, pembayaran manual, dan dashboard admin.",
+  "requestFramePermissions": [
+    "geolocation"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
