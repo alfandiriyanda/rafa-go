@@ -20,13 +20,15 @@ import {
 import confetti from 'canvas-confetti';
 
 export const PaymentVerificationTab: React.FC = () => {
-  const { bookings, verifyPayment } = useRental();
+  const { bookings, verifyPayment, cancelBooking } = useRental();
 
   const [inspectBooking, setInspectBooking] = useState<Booking | null>(null);
   const [rejectModalOpen, setRejectModalOpen] = useState(false);
   const [rejectReasonCategory, setRejectReasonCategory] = useState('Nominal transfer tidak sesuai');
   const [rejectNotes, setRejectNotes] = useState('');
   const [filterStatus, setFilterStatus] = useState<'needs_verification' | 'waiting_payment' | 'all'>('needs_verification');
+  const [cancelModalBooking, setCancelModalBooking] = useState<Booking | null>(null);
+  const [cancelReasonText, setCancelReasonText] = useState('Dibatalkan oleh staf (tidak ada pembayaran / permintaan konsumen)');
 
   const pendingVerification = bookings.filter((b) => b.status === 'menunggu_verifikasi');
   const waitingPayment = bookings.filter((b) => b.status === 'menunggu_pembayaran');
@@ -187,6 +189,16 @@ export const PaymentVerificationTab: React.FC = () => {
                     </p>
                   </div>
 
+                  {/* Catatan Konsumen */}
+                  {booking.customer.notes && (
+                    <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200/90 text-xs">
+                      <span className="font-bold text-amber-900 block text-[10px] uppercase tracking-wider mb-0.5">
+                        Catatan dari Konsumen:
+                      </span>
+                      <p className="text-amber-800 font-medium italic">"{booking.customer.notes}"</p>
+                    </div>
+                  )}
+
                   {/* Payment Details */}
                   <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 text-xs space-y-1.5">
                     <div className="flex justify-between">
@@ -238,38 +250,54 @@ export const PaymentVerificationTab: React.FC = () => {
                 {/* Actions */}
                 <div className="pt-2">
                   {booking.status === 'menunggu_verifikasi' ? (
-                    <div className="grid grid-cols-2 gap-2">
-                      <button
-                        onClick={() => {
-                          setInspectBooking(booking);
-                          setRejectModalOpen(true);
-                        }}
-                        className="py-2.5 px-3 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold transition-colors cursor-pointer text-center"
-                      >
-                        Tolak
-                      </button>
+                    <div className="space-y-1.5">
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          onClick={() => {
+                            setInspectBooking(booking);
+                            setRejectModalOpen(true);
+                          }}
+                          className="py-2.5 px-3 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold transition-colors cursor-pointer text-center"
+                        >
+                          Tolak
+                        </button>
 
+                        <button
+                          onClick={() => handleApprove(booking)}
+                          className="py-2.5 px-3 rounded-xl btn-primary text-xs font-bold transition-colors cursor-pointer shadow-xs text-center"
+                        >
+                          Setujui
+                        </button>
+                      </div>
                       <button
-                        onClick={() => handleApprove(booking)}
-                        className="py-2.5 px-3 rounded-xl btn-primary text-xs font-bold transition-colors cursor-pointer shadow-xs text-center"
+                        onClick={() => setCancelModalBooking(booking)}
+                        className="w-full py-1.5 px-2 rounded-xl bg-slate-50 hover:bg-rose-50 text-slate-500 hover:text-rose-700 text-[11px] font-semibold transition-colors cursor-pointer text-center"
                       >
-                        Setujui
+                        Batalkan Pesanan Ini
                       </button>
                     </div>
                   ) : booking.status === 'menunggu_pembayaran' ? (
-                    <div className="flex gap-2">
+                    <div className="space-y-1.5">
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleApprove(booking)}
+                          className="flex-1 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-colors cursor-pointer shadow-xs"
+                          title="Setujui manual jika pembayaran sudah masuk mutasi bank/kasir"
+                        >
+                          Konfirmasi Lunas
+                        </button>
+                        <button
+                          onClick={() => setInspectBooking(booking)}
+                          className="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold cursor-pointer"
+                        >
+                          Detail
+                        </button>
+                      </div>
                       <button
-                        onClick={() => handleApprove(booking)}
-                        className="flex-1 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-colors cursor-pointer shadow-xs"
-                        title="Setujui manual jika pembayaran sudah masuk mutasi bank/kasir"
+                        onClick={() => setCancelModalBooking(booking)}
+                        className="w-full py-1.5 px-2 rounded-xl bg-slate-50 hover:bg-rose-50 text-slate-500 hover:text-rose-700 text-[11px] font-semibold transition-colors cursor-pointer text-center"
                       >
-                        Konfirmasi Lunas (Manual)
-                      </button>
-                      <button
-                        onClick={() => setInspectBooking(booking)}
-                        className="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold cursor-pointer"
-                      >
-                        Detail
+                        Batalkan Pesanan Ini
                       </button>
                     </div>
                   ) : (
@@ -338,6 +366,17 @@ export const PaymentVerificationTab: React.FC = () => {
                   Rp{inspectBooking.totalAmount.toLocaleString('id-ID')}
                 </span>
               </div>
+
+              {inspectBooking.customer.notes && (
+                <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 mt-2">
+                  <span className="font-bold text-amber-900 block text-[10px] uppercase">
+                    Catatan Pesanan dari Konsumen:
+                  </span>
+                  <p className="text-amber-800 font-semibold italic mt-0.5">
+                    "{inspectBooking.customer.notes}"
+                  </p>
+                </div>
+              )}
             </div>
 
             {inspectBooking.status === 'menunggu_verifikasi' && (
@@ -418,6 +457,61 @@ export const PaymentVerificationTab: React.FC = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Cancel Order Modal */}
+      {cancelModalBooking && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#12202F]/70 backdrop-blur-xs">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
+            <div className="flex items-center gap-2.5 text-rose-600">
+              <AlertTriangle className="w-5 h-5 shrink-0" />
+              <h3 className="font-heading font-bold text-base text-[#12202F]">
+                Konfirmasi Batalkan Pesanan
+              </h3>
+            </div>
+            <p className="text-xs text-slate-600">
+              Apakah Anda yakin ingin membatalkan pesanan{' '}
+              <strong className="text-[#12202F] font-mono">{cancelModalBooking.bookingCode}</strong> a.n.{' '}
+              <strong>{cancelModalBooking.customer.name}</strong>? Unit sepeda yang dipesan akan otomatis kembali berstatus <strong>Tersedia</strong>.
+            </p>
+
+            <div>
+              <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                Alasan Pembatalan:
+              </label>
+              <input
+                type="text"
+                value={cancelReasonText}
+                onChange={(e) => setCancelReasonText(e.target.value)}
+                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs text-[#12202F]"
+                placeholder="Alasan pembatalan..."
+              />
+            </div>
+
+            <div className="flex gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setCancelModalBooking(null)}
+                className="flex-1 py-2.5 rounded-xl bg-slate-100 text-slate-700 text-xs font-semibold cursor-pointer hover:bg-slate-200"
+              >
+                Kembali
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  cancelBooking(cancelModalBooking.bookingCode, cancelReasonText, 'admin');
+                  setCancelModalBooking(null);
+                  if (inspectBooking?.bookingCode === cancelModalBooking.bookingCode) {
+                    setInspectBooking(null);
+                  }
+                }}
+                className="flex-1 py-2.5 rounded-xl bg-rose-600 text-white text-xs font-bold hover:bg-rose-700 cursor-pointer shadow-xs"
+              >
+                Ya, Batalkan Pesanan
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -19,10 +19,13 @@ import {
   ShieldAlert,
   RotateCcw,
   Sparkles,
+  FileText,
+  XCircle,
 } from 'lucide-react';
+import { PrintableReceiptModal } from './PrintableReceiptModal';
 
 export const OrderLookupView: React.FC = () => {
-  const { bookings, viewParams, extendRental, navigateTo } = useRental();
+  const { bookings, viewParams, extendRental, cancelBooking, navigateTo } = useRental();
 
   const [searchQuery, setSearchQuery] = useState(viewParams.kode || viewParams.token || '');
   const [activeBooking, setActiveBooking] = useState<Booking | null>(() => {
@@ -41,6 +44,16 @@ export const OrderLookupView: React.FC = () => {
   const [extensionModalOpen, setExtensionModalOpen] = useState(false);
   const [extensionHours, setExtensionHours] = useState(1.0);
   const [searchError, setSearchError] = useState('');
+  const [showReceiptModal, setShowReceiptModal] = useState(false);
+  const [cancelModalOpen, setCancelModalOpen] = useState(false);
+  const [cancelReasonText, setCancelReasonText] = useState('Dibatalkan oleh konsumen (perubahan rencana)');
+
+  // Live timer for real-time consumer countdown
+  const [currentTime, setCurrentTime] = useState(new Date());
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   // Handle manual search
   const handleSearch = (e: React.FormEvent) => {
@@ -266,54 +279,105 @@ export const OrderLookupView: React.FC = () => {
               </div>
             )}
 
-            {/* If Status is Sedang Disewa: Active Rental Banner with Live Countdown */}
-            {activeBooking.status === 'sedang_disewa' && (
-              <div className="p-5 rounded-2xl bg-gradient-to-r from-[#12202F] to-[#1e344a] text-white flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-2xl bg-[#4FC3C8] text-[#12202F] flex items-center justify-center font-bold">
-                    <Bike className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <h4 className="font-heading font-bold text-base text-white">
-                      Selamat Bersepeda!
-                    </h4>
-                    <p className="text-xs text-slate-300">
-                      Waktu berakhir dijadwalkan:{' '}
-                      <strong className="text-[#4FC3C8]">{activeBooking.endTime} WIB</strong>
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <button
-                    onClick={() => setExtensionModalOpen(true)}
-                    className="btn-primary px-4 py-2 rounded-xl text-xs font-bold cursor-pointer flex items-center gap-1.5 shadow-sm"
-                  >
-                    <Clock className="w-3.5 h-3.5" />
-                    <span>Perpanjang Sewa</span>
-                  </button>
-
-                  <button
-                    onClick={() =>
-                      navigateTo('s', {
-                        token: activeBooking.items[0]?.bikeCode || 'CB-01',
-                      })
-                    }
-                    className="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold cursor-pointer flex items-center gap-1.5"
-                  >
-                    <QrCode className="w-3.5 h-3.5 text-[#4FC3C8]" />
-                    <span>Scan QR Sepeda</span>
-                  </button>
+            {/* If Status is Dibatalkan */}
+            {activeBooking.status === 'dibatalkan' && (
+              <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-900 text-xs flex items-start gap-3">
+                <XCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-bold">Pesanan Sewa Telah Dibatalkan</p>
+                  <p className="text-rose-700 mt-0.5">
+                    Alasan: {activeBooking.cancelReason || 'Dibatalkan atas permintaan pengguna'}. Sepeda telah otomatis dikembalikan ke status tersedia.
+                  </p>
                 </div>
               </div>
             )}
+
+            {/* If Status is Sedang Disewa: Active Rental Banner with Live Countdown */}
+            {activeBooking.status === 'sedang_disewa' && (() => {
+              const startMs = activeBooking.rentalStartedAt
+                ? new Date(activeBooking.rentalStartedAt).getTime()
+                : new Date().getTime();
+              const durationMs = activeBooking.durationHours * 60 * 60 * 1000;
+              const endMs = startMs + durationMs;
+              const diffMs = endMs - currentTime.getTime();
+              const isOverdue = diffMs <= 0;
+
+              let timerText = '';
+              if (!isOverdue) {
+                const totalSec = Math.floor(diffMs / 1000);
+                const hours = Math.floor(totalSec / 3600);
+                const mins = Math.floor((totalSec % 3600) / 60);
+                const secs = totalSec % 60;
+                timerText = `${hours > 0 ? `${hours}j ` : ''}${mins}m ${secs}s`;
+              } else {
+                const excessMinutes = Math.abs(Math.floor(diffMs / (60 * 1000)));
+                timerText = `Lewat Batas (+${excessMinutes} Menit)`;
+              }
+
+              return (
+                <div
+                  className={`p-5 rounded-2xl text-white flex flex-col sm:flex-row items-center justify-between gap-4 transition-all ${
+                    isOverdue
+                      ? 'bg-gradient-to-r from-rose-900 via-rose-800 to-rose-700 shadow-md'
+                      : 'bg-gradient-to-r from-[#12202F] via-[#1a2e42] to-[#1e344a]'
+                  }`}
+                >
+                  <div className="flex items-center gap-3.5">
+                    <div
+                      className={`w-12 h-12 rounded-2xl flex items-center justify-center font-bold ${
+                        isOverdue
+                          ? 'bg-rose-400 text-rose-950 animate-pulse'
+                          : 'bg-[#4FC3C8] text-[#12202F]'
+                      }`}
+                    >
+                      <Clock className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h4 className="font-heading font-bold text-base text-white">
+                          {isOverdue ? 'Waktu Sewa Telah Habis' : 'Waktu Gowes Sedang Berjalan'}
+                        </h4>
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/20 text-white uppercase tracking-wider">
+                          Real-time
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-200 mt-0.5">
+                        {isOverdue ? 'Status Keterlambatan:' : 'Sisa Durasi Kamu:'}{' '}
+                        <strong className={`font-mono text-sm ${isOverdue ? 'text-amber-300 font-black' : 'text-[#4FC3C8]'}`}>
+                          {timerText}
+                        </strong>{' '}
+                        • Batas kembali: {activeBooking.endTime} WIB
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2.5">
+                    <button
+                      onClick={() => setExtensionModalOpen(true)}
+                      className="btn-primary px-4 py-2.5 rounded-xl text-xs font-bold cursor-pointer flex items-center gap-1.5 shadow-sm"
+                    >
+                      <Clock className="w-3.5 h-3.5" />
+                      <span>Perpanjang Sewa</span>
+                    </button>
+
+                    <button
+                      onClick={() => setShowReceiptModal(true)}
+                      className="px-3.5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold cursor-pointer flex items-center gap-1.5 transition-colors"
+                    >
+                      <FileText className="w-3.5 h-3.5 text-[#4FC3C8]" />
+                      <span>Struk Digital</span>
+                    </button>
+                  </div>
+                </div>
+              );
+            })()}
 
             {/* Order Details Breakdown */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
               {/* Box 1: Info Penyewa & Jadwal */}
               <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-3 text-xs">
                 <h4 className="font-heading font-bold text-sm text-[#12202F] border-b border-slate-200 pb-2">
-                  Data Penyewa & Jadwal
+                  Data Penyewa &amp; Jadwal
                 </h4>
                 <div className="space-y-2">
                   <div className="flex justify-between">
@@ -338,6 +402,12 @@ export const OrderLookupView: React.FC = () => {
                     <span className="text-slate-500">Jaminan Identitas:</span>
                     <span className="text-emerald-700 font-semibold">KTP Fisik Asli (Di Pos Admin)</span>
                   </div>
+                  {activeBooking.customer.notes && (
+                    <div className="pt-2 border-t border-slate-200">
+                      <span className="text-slate-400 text-[10px] block font-bold">Catatan Konsumen:</span>
+                      <span className="italic text-slate-700">"{activeBooking.customer.notes}"</span>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -427,22 +497,33 @@ export const OrderLookupView: React.FC = () => {
 
             {/* Action Bar */}
             <div className="pt-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3 text-xs">
-              <div className="flex gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <button
-                  onClick={handlePrint}
-                  className="px-4 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold flex items-center gap-1.5 cursor-pointer"
+                  onClick={() => setShowReceiptModal(true)}
+                  className="px-4 py-2.5 rounded-xl btn-primary text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-sm"
                 >
-                  <Printer className="w-4 h-4 text-slate-500" />
-                  <span>Cetak Nota</span>
+                  <FileText className="w-4 h-4" />
+                  <span>Lihat &amp; Cetak Struk Pembayaran</span>
                 </button>
 
                 {activeBooking.status === 'menunggu_pembayaran' && (
                   <button
                     onClick={() => navigateTo('bayar', { kode: activeBooking.bookingCode })}
-                    className="btn-primary px-4 py-2.5 rounded-xl font-bold flex items-center gap-1.5 cursor-pointer shadow-sm"
+                    className="px-4 py-2.5 rounded-xl bg-[#12202F] text-white hover:bg-slate-800 font-bold flex items-center gap-1.5 cursor-pointer shadow-xs transition-colors"
                   >
                     <span>Bayar Sekarang</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
+                    <ArrowRight className="w-3.5 h-3.5 text-[#4FC3C8]" />
+                  </button>
+                )}
+
+                {(activeBooking.status === 'menunggu_pembayaran' ||
+                  activeBooking.status === 'menunggu_verifikasi') && (
+                  <button
+                    onClick={() => setCancelModalOpen(true)}
+                    className="px-4 py-2.5 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold flex items-center gap-1.5 cursor-pointer transition-colors"
+                  >
+                    <XCircle className="w-4 h-4" />
+                    <span>Batalkan Pesanan</span>
                   </button>
                 )}
               </div>
@@ -456,6 +537,65 @@ export const OrderLookupView: React.FC = () => {
                 <Phone className="w-4 h-4" />
                 <span>Hubungi Admin WhatsApp</span>
               </a>
+            </div>
+          </div>
+        )}
+
+        {/* Printable Receipt Modal (Items 1 & 10) */}
+        {showReceiptModal && activeBooking && (
+          <PrintableReceiptModal
+            booking={activeBooking}
+            onClose={() => setShowReceiptModal(false)}
+          />
+        )}
+
+        {/* Consumer Cancel Booking Modal (Item 6) */}
+        {cancelModalOpen && activeBooking && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#12202F]/70 backdrop-blur-xs">
+            <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
+              <div className="flex items-center gap-2.5 text-rose-600">
+                <AlertTriangle className="w-5 h-5 shrink-0" />
+                <h3 className="font-heading font-bold text-base text-[#12202F]">
+                  Batalkan Pesanan Sewa Sepeda
+                </h3>
+              </div>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                Apakah kamu yakin ingin membatalkan pesanan{' '}
+                <strong className="text-[#12202F] font-mono">{activeBooking.bookingCode}</strong>? Slot unit sepeda yang telah dipesan akan otomatis dibuka kembali untuk disewa pelanggan lain.
+              </p>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                  Alasan Pembatalan:
+                </label>
+                <input
+                  type="text"
+                  value={cancelReasonText}
+                  onChange={(e) => setCancelReasonText(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs text-[#12202F]"
+                  placeholder="Contoh: Perubahan rencana / ganti hari..."
+                />
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setCancelModalOpen(false)}
+                  className="flex-1 py-2.5 rounded-xl bg-slate-100 text-slate-700 text-xs font-semibold cursor-pointer hover:bg-slate-200"
+                >
+                  Kembali
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    cancelBooking(activeBooking.bookingCode, cancelReasonText, 'konsumen');
+                    setCancelModalOpen(false);
+                  }}
+                  className="flex-1 py-2.5 rounded-xl bg-rose-600 text-white text-xs font-bold hover:bg-rose-700 cursor-pointer shadow-xs"
+                >
+                  Ya, Batalkan Pesanan
+                </button>
+              </div>
             </div>
           </div>
         )}

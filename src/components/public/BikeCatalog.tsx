@@ -298,7 +298,7 @@ export const BikeCatalog: React.FC = () => {
                         {bike.name}
                       </h3>
                       <p className="text-xs text-[#5B7083] mt-0.5">
-                        {bike.gears} • {bike.brakes}
+                        {bike.rideType || 'Santai & Keliling Danau'} • {bike.condition || '100% Siap Gowes'}
                       </p>
                     </div>
 

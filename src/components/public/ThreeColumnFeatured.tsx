@@ -80,7 +80,7 @@ export const ThreeColumnFeatured: React.FC = () => {
                     {bike.name}
                   </h3>
                   <p className="text-xs text-white/80 mt-1 line-clamp-1">
-                    {bike.gears} • {bike.brakes} • Termasuk Helm & Gembok
+                    {bike.rideType || 'Santai & Rekreasi'} • {bike.condition || '100% Siap Gowes'} • Termasuk Helm &amp; Gembok
                   </p>
                 </div>
               </motion.div>

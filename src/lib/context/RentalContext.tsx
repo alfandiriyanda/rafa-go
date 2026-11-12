@@ -44,9 +44,11 @@ interface RentalContextType {
   setBookingFormState: React.Dispatch<React.SetStateAction<{ date: string; startTime: string; durationHours: number }>>;
   // Core Actions
   createBooking: (customer: BookingCustomer) => Booking;
+  cancelBooking: (bookingCode: string, reason?: string, by?: 'konsumen' | 'admin') => boolean;
   submitPaymentProof: (bookingCode: string, proof: PaymentProof) => boolean;
   verifyPayment: (bookingCode: string, approved: boolean, reason?: string) => boolean;
   startRental: (bookingCode: string, photoUrl?: string) => boolean;
+  updateRentalPhoto: (bookingCode: string, photoUrl: string) => boolean;
   returnBike: (bookingCode: string, condition: 'baik' | 'lecet_ringan' | 'rusak_berat', damageFee: number) => { success: boolean; lateFee: number; totalFinal: number };
   extendRental: (bookingCode: string, additionalHours: number) => boolean;
   recordQRScan: (
@@ -613,6 +615,59 @@ export const RentalProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     return newBooking;
   };
 
+  const cancelBooking = (
+    bookingCode: string,
+    reason: string = 'Dibatalkan oleh pengguna',
+    by: 'konsumen' | 'admin' = userRole === 'consumer' ? 'konsumen' : 'admin'
+  ): boolean => {
+    let targetBooking: Booking | undefined;
+    setBookings((prev) =>
+      prev.map((b) => {
+        if (b.bookingCode === bookingCode) {
+          targetBooking = b;
+          return {
+            ...b,
+            status: 'dibatalkan',
+            cancelReason: reason,
+            cancelledAt: new Date().toISOString(),
+            cancelledBy: by,
+          };
+        }
+        return b;
+      })
+    );
+
+    if (targetBooking) {
+      // Re-release bikes to 'tersedia'
+      const bikeIds = (targetBooking as Booking).items.map((i) => i.bikeId);
+      setBikes((prev) =>
+        prev.map((bike) => (bikeIds.includes(bike.id) ? { ...bike, status: 'tersedia' } : bike))
+      );
+
+      // Sync to Supabase if connected
+      const client = getSupabaseClient();
+      if (client) {
+        client
+          .from('bookings')
+          .update({
+            status: 'dibatalkan',
+          })
+          .eq('booking_code', bookingCode)
+          .then(({ error }) => {
+            if (error) console.error('Supabase cancel booking error:', error.message);
+          });
+      }
+
+      addAuditLog(
+        'Pemesanan Dibatalkan',
+        `Pesanan ${bookingCode} dibatalkan oleh ${by === 'konsumen' ? 'Konsumen' : 'Admin Lapangan'}. Alasan: "${reason}". Sepeda dikembalikan ke status tersedia.`,
+        bookingCode
+      );
+      return true;
+    }
+    return false;
+  };
+
   const submitPaymentProof = (bookingCode: string, proof: PaymentProof): boolean => {
     let updated = false;
     setBookings((prev) =>
@@ -746,6 +801,44 @@ export const RentalProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       return true;
     }
     return false;
+  };
+
+  const updateRentalPhoto = (bookingCode: string, photoUrl: string): boolean => {
+    let updated = false;
+    setBookings((prev) =>
+      prev.map((b) => {
+        if (b.bookingCode === bookingCode) {
+          updated = true;
+          return {
+            ...b,
+            rentalCustomerPhoto: photoUrl,
+          };
+        }
+        return b;
+      })
+    );
+
+    if (updated) {
+      const client = getSupabaseClient();
+      if (client) {
+        client
+          .from('bookings')
+          .update({
+            rental_customer_photo: photoUrl,
+          })
+          .eq('booking_code', bookingCode)
+          .then(({ error }) => {
+            if (error) console.error('Supabase photo update error:', error.message);
+          });
+      }
+
+      addAuditLog(
+        'Foto Serah Terima Diunggah',
+        `Foto dokumentasi serah terima sepeda berhasil disimpan untuk pesanan ${bookingCode}.`,
+        bookingCode
+      );
+    }
+    return updated;
   };
 
   const returnBike = (
@@ -1222,9 +1315,11 @@ export const RentalProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         bookingFormState,
         setBookingFormState,
         createBooking,
+        cancelBooking,
         submitPaymentProof,
         verifyPayment,
         startRental,
+        updateRentalPhoto,
         returnBike,
         extendRental,
         recordQRScan,

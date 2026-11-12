@@ -87,15 +87,49 @@
   transform: scale(0.96);
 }
 
-/* Print styling for bike physical tag cards */
+/* Print styling for receipts and physical bike tag cards */
 @media print {
-  body * {
+  .no-print {
+    display: none !important;
+  }
+
+  /* Default print cleanup */
+  body {
+    background: #ffffff !important;
+    color: #111827 !important;
+  }
+
+  /* Receipt printing mode */
+  body.print-receipt-mode * {
     visibility: hidden !important;
   }
-  #printable-qr-tag, #printable-qr-tag * {
+  body.print-receipt-mode #printable-receipt,
+  body.print-receipt-mode #printable-receipt * {
     visibility: visible !important;
   }
-  #printable-qr-tag {
+  body.print-receipt-mode #printable-receipt {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 auto !important;
+    padding: 16px !important;
+    background: #ffffff !important;
+    color: #111827 !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  /* Tag printing mode */
+  body.print-tag-mode * {
+    visibility: hidden !important;
+  }
+  body.print-tag-mode #printable-qr-tag,
+  body.print-tag-mode #printable-qr-tag * {
+    visibility: visible !important;
+  }
+  body.print-tag-mode #printable-qr-tag {
     position: fixed !important;
     left: 50% !important;
     top: 50% !important;
@@ -107,5 +141,6 @@
     box-shadow: none !important;
   }
 }
+
 
 

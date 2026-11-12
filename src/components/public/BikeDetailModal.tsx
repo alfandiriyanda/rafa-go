@@ -89,31 +89,46 @@ export const BikeDetailModal: React.FC = () => {
               </div>
             </div>
 
-            {/* Specifications Grid */}
+            {/* Specifications Grid - Unique Rental Character */}
             <div className="space-y-3">
               <h3 className="text-xs font-bold text-[#12202F] uppercase tracking-wider">
-                Spesifikasi Sepeda
+                Karakter &amp; Keunggulan Rental
               </h3>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
-                <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                  <span className="text-[#5B7083] block text-[10px]">Ukuran Frame</span>
-                  <span className="font-semibold text-[#12202F]">{bike.frameSize}</span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                <div className="p-3.5 rounded-2xl bg-cyan-50/60 border border-cyan-100 space-y-0.5">
+                  <span className="text-[#4FC3C8] font-bold block text-[10px] uppercase tracking-wider">
+                    Tipe Karakter Gowes
+                  </span>
+                  <span className="font-bold text-[#12202F] text-sm">
+                    {bike.rideType || 'Santai & Keliling Danau CRC'}
+                  </span>
+                  <p className="text-[11px] text-slate-500">
+                    Posisi tegak ergonomis, sangat nyaman untuk rekreasi dan keliling santai.
+                  </p>
                 </div>
-                <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                  <span className="text-[#5B7083] block text-[10px]">Sistem Gigi</span>
-                  <span className="font-semibold text-[#12202F]">{bike.gears}</span>
+
+                <div className="p-3.5 rounded-2xl bg-emerald-50/60 border border-emerald-100 space-y-0.5">
+                  <span className="text-emerald-700 font-bold block text-[10px] uppercase tracking-wider">
+                    Kondisi Fisik Unit
+                  </span>
+                  <span className="font-bold text-[#12202F] text-sm">
+                    {bike.condition || '100% Siap Gowes (Rantai & Ban Prima)'}
+                  </span>
+                  <p className="text-[11px] text-slate-500">
+                    Telah melalui pengecekan harian dan servis rutin oleh mekanik pos RAFA GO.
+                  </p>
                 </div>
-                <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                  <span className="text-[#5B7083] block text-[10px]">Pengereman</span>
-                  <span className="font-semibold text-[#12202F]">{bike.brakes}</span>
-                </div>
-                <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                  <span className="text-[#5B7083] block text-[10px]">Warna Unit</span>
-                  <span className="font-semibold text-[#12202F]">{bike.color}</span>
-                </div>
-                <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 col-span-2 sm:col-span-2">
-                  <span className="text-[#5B7083] block text-[10px]">Fasilitas Termasuk</span>
-                  <span className="font-semibold text-[#12202F]">Helm Standar SNI + Gembok Kunci Baja</span>
+
+                <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-0.5 sm:col-span-2">
+                  <span className="text-slate-500 font-bold block text-[10px] uppercase tracking-wider">
+                    Aksesoris Bawaan Gratis (Termasuk)
+                  </span>
+                  <span className="font-bold text-[#12202F]">
+                    {bike.accessories || 'Helm Standar SNI + Gembok Baja Berkunci + Keranjang Depan'}
+                  </span>
+                  <p className="text-[11px] text-slate-500">
+                    Size Frame: {bike.frameSize} • Warna: {bike.color} • Dilengkapi QR Code Tracker
+                  </p>
                 </div>
               </div>
             </div>

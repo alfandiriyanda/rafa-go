@@ -17,7 +17,6 @@ import {
   ShieldCheck,
   Clock,
   Sparkles,
-  Database,
   LogOut,
 } from 'lucide-react';
 import { OverviewTab } from './OverviewTab';
@@ -27,7 +26,6 @@ import { WalkinTab } from './WalkinTab';
 import { BikesManagementTab } from './BikesManagementTab';
 import { TrackingCenterTab } from './TrackingCenterTab';
 import { ReportsTab } from './ReportsTab';
-import { SupabaseTab } from './SupabaseTab';
 
 export const DashboardLayout: React.FC = () => {
   const { userRole, setUserRole, navigateTo, bookings, logoutAdmin, bikes } = useRental();
@@ -54,7 +52,6 @@ export const DashboardLayout: React.FC = () => {
     { id: 'sepeda', label: `Armada Sepeda (${bikes.length})`, icon: <Bike className="w-4 h-4" /> },
     { id: 'tracking', label: 'Tracking Center', icon: <Compass className="w-4 h-4" /> },
     { id: 'laporan', label: 'Laporan & Audit', icon: <FileBarChart className="w-4 h-4" /> },
-    { id: 'supabase', label: 'Database Supabase', icon: <Database className="w-4 h-4" /> },
   ];
 
   return (
@@ -160,7 +157,6 @@ export const DashboardLayout: React.FC = () => {
         {activeTab === 'sepeda' && <BikesManagementTab />}
         {activeTab === 'tracking' && <TrackingCenterTab />}
         {activeTab === 'laporan' && <ReportsTab />}
-        {activeTab === 'supabase' && <SupabaseTab />}
       </main>
     </div>
   );

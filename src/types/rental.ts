@@ -27,11 +27,15 @@ export interface Bike {
   hourlyRate: number;
   status: BikeStatus;
   frameSize: string;
-  gears: string;
-  brakes: string;
   color: string;
   image: string;
   qrToken: string;
+  // Spesifikasi unik rental
+  rideType?: string; // e.g. "Santai & Keliling Danau", "Olahraga & Tanjakan", "Wisata Keluarga"
+  accessories?: string; // e.g. "Helm SNI + Gembok Baja + Keranjang"
+  condition?: string; // e.g. "100% Siap Gowes (Ban & Rantai Prima)"
+  gears?: string; // opsional / backward-compatible
+  brakes?: string; // opsional / backward-compatible
   currentLocation?: {
     lat: number;
     lng: number;
@@ -117,6 +121,9 @@ export interface Booking {
   paymentVerifiedAt?: string;
   paymentVerifiedBy?: string;
   rejectionReason?: string;
+  cancelReason?: string;
+  cancelledAt?: string;
+  cancelledBy?: 'konsumen' | 'admin';
   rentalStartedAt?: string;
   rentalCustomerPhoto?: string; // photo of customer on bike
   rentalReturnedAt?: string;

@@ -368,8 +368,9 @@ export const BikesManagementTab: React.FC = () => {
     hourlyRate: number;
     status: BikeStatus;
     frameSize: string;
-    gears: string;
-    brakes: string;
+    rideType: string;
+    accessories: string;
+    condition: string;
     color: string;
     image: string;
     qrToken: string;
@@ -380,12 +381,30 @@ export const BikesManagementTab: React.FC = () => {
     hourlyRate: categories[0]?.hourlyRate || 35000,
     status: 'tersedia',
     frameSize: 'M',
-    gears: '7-Speed Shimano',
-    brakes: 'Rem Cakram Hidrolik',
+    rideType: 'Santai & Keliling Danau CRC',
+    accessories: 'Helm SNI + Gembok Baja + Keranjang Depan',
+    condition: '100% Siap Gowes (Rantai & Ban Prima)',
     color: 'Teal Aqua',
     image: BIKE_IMAGES.city?.[0] || '',
     qrToken: '',
   });
+
+  // Handle direct file upload for bike photo
+  const handleBikeImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      showFeedback('error', 'Ukuran foto maksimal 5MB.');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const result = event.target?.result as string;
+      setBikeFormData((prev) => ({ ...prev, image: result }));
+      showFeedback('success', 'Foto sepeda berhasil diunggah.');
+    };
+    reader.readAsDataURL(file);
+  };
 
   // Category Form State
   const [categoryFormData, setCategoryFormData] = useState<{
@@ -422,8 +441,9 @@ export const BikesManagementTab: React.FC = () => {
       hourlyRate: defaultCat.hourlyRate,
       status: 'tersedia',
       frameSize: 'M',
-      gears: '7-Speed Shimano',
-      brakes: 'Rem Cakram Hidrolik',
+      rideType: 'Santai & Keliling Danau CRC',
+      accessories: 'Helm SNI + Gembok Baja + Keranjang Depan',
+      condition: '100% Siap Gowes (Rantai & Ban Prima)',
       color: 'Teal Aqua',
       image: BIKE_IMAGES[defaultCat.slug]?.[0] || BIKE_IMAGES.city?.[0] || '',
       qrToken: `rg_qr_${suggestedCode.toLowerCase().replace(/[^a-z0-9]/g, '')}_${Math.random().toString(36).substring(2, 6)}`,
@@ -441,8 +461,9 @@ export const BikesManagementTab: React.FC = () => {
       hourlyRate: bike.hourlyRate,
       status: bike.status,
       frameSize: bike.frameSize,
-      gears: bike.gears,
-      brakes: bike.brakes,
+      rideType: bike.rideType || 'Santai & Keliling Danau CRC',
+      accessories: bike.accessories || 'Helm SNI + Gembok Baja + Keranjang Depan',
+      condition: bike.condition || '100% Siap Gowes (Rantai & Ban Prima)',
       color: bike.color,
       image: bike.image,
       qrToken: bike.qrToken,
@@ -498,8 +519,9 @@ export const BikesManagementTab: React.FC = () => {
         hourlyRate: Number(bikeFormData.hourlyRate),
         status: bikeFormData.status,
         frameSize: bikeFormData.frameSize,
-        gears: bikeFormData.gears,
-        brakes: bikeFormData.brakes,
+        rideType: bikeFormData.rideType,
+        accessories: bikeFormData.accessories,
+        condition: bikeFormData.condition,
         color: bikeFormData.color,
         image: bikeFormData.image || BIKE_IMAGES.city?.[0],
         qrToken: bikeFormData.qrToken,
@@ -527,14 +549,15 @@ export const BikesManagementTab: React.FC = () => {
         hourlyRate: Number(bikeFormData.hourlyRate),
         status: bikeFormData.status,
         frameSize: bikeFormData.frameSize,
-        gears: bikeFormData.gears,
-        brakes: bikeFormData.brakes,
+        rideType: bikeFormData.rideType,
+        accessories: bikeFormData.accessories,
+        condition: bikeFormData.condition,
         color: bikeFormData.color,
         image: bikeFormData.image || BIKE_IMAGES.city?.[0],
         qrToken: bikeFormData.qrToken,
       });
 
-      showFeedback('success', `Sepeda baru [${bikeFormData.code}] berhasil ditambahkan ke armada.`);
+      showFeedback('success', `Unit [${bikeFormData.code}] berhasil ditambahkan ke armada.`);
       setBikeModalOpen(false);
     }
   };
@@ -865,6 +888,7 @@ export const BikesManagementTab: React.FC = () => {
               <table className="w-full text-left text-xs text-[#12202F]">
                 <thead className="bg-slate-50 text-[11px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-200">
                   <tr>
+                    <th className="px-3 py-4 text-center w-12 font-mono">No.</th>
                     <th className="px-5 py-4">Kode &amp; Spesifikasi Sepeda</th>
                     <th className="px-4 py-4">Kategori</th>
                     <th className="px-4 py-4">Tarif Sewa</th>
@@ -876,15 +900,19 @@ export const BikesManagementTab: React.FC = () => {
                 <tbody className="divide-y divide-slate-100">
                   {filteredBikes.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="py-12 text-center text-slate-400">
+                      <td colSpan={7} className="py-12 text-center text-slate-400">
                         <BikeIcon className="w-8 h-8 mx-auto text-slate-300 mb-2" />
                         <p className="font-semibold text-slate-600">Tidak ada sepeda yang cocok dengan filter</p>
                         <p className="text-xs text-slate-400 mt-0.5">Silakan ganti kata kunci pencarian atau tambah sepeda baru</p>
                       </td>
                     </tr>
                   ) : (
-                    filteredBikes.map((bike) => (
+                    filteredBikes.map((bike, index) => (
                       <tr key={bike.id} className="hover:bg-slate-50/70 transition-colors">
+                        {/* Row Number */}
+                        <td className="px-3 py-3.5 text-center font-mono font-bold text-slate-400 text-xs">
+                          {index + 1}
+                        </td>
                         {/* Bike Info */}
                         <td className="px-5 py-3.5">
                           <div className="flex items-center gap-3">
@@ -901,7 +929,7 @@ export const BikesManagementTab: React.FC = () => {
                                 <span className="font-bold text-[#12202F] text-sm">{bike.name}</span>
                               </div>
                               <p className="text-[11px] text-slate-500">
-                                Size {bike.frameSize} • {bike.color} • {bike.gears}
+                                Size {bike.frameSize} • {bike.color} • {bike.rideType || bike.gears || 'Santai'}
                               </p>
                               <p className="text-[10px] text-slate-400 font-mono mt-0.5">
                                 QR: {bike.qrToken}
@@ -1208,8 +1236,40 @@ export const BikesManagementTab: React.FC = () => {
                 </div>
               </div>
 
-              {/* Spesifikasi Teknis */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
+              {/* Spesifikasi Rental Unik */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                    Tipe Karakter Gowes *
+                  </label>
+                  <select
+                    value={bikeFormData.rideType}
+                    onChange={(e) => setBikeFormData({ ...bikeFormData, rideType: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold bg-white"
+                  >
+                    <option value="Santai & Keliling Danau CRC">Santai & Keliling Danau CRC</option>
+                    <option value="Olahraga & Jalur Cepat">Olahraga & Jalur Cepat</option>
+                    <option value="Wisata Keluarga & Santai">Wisata Keluarga & Santai</option>
+                    <option value="Komuter & Keliling Kawasan">Komuter & Keliling Kawasan</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                    Kondisi Fisik Unit *
+                  </label>
+                  <select
+                    value={bikeFormData.condition}
+                    onChange={(e) => setBikeFormData({ ...bikeFormData, condition: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold bg-white"
+                  >
+                    <option value="100% Siap Gowes (Rantai & Ban Prima)">100% Siap Gowes (Rantai & Ban Prima)</option>
+                    <option value="Kondisi Prima (Servis Rutin Berkala)">Kondisi Prima (Servis Rutin Berkala)</option>
+                    <option value="Unit Baru (Fresh Fleet 2026)">Unit Baru (Fresh Fleet 2026)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <label className="block text-[11px] font-bold text-slate-600 mb-1">Ukuran Frame</label>
                   <input
@@ -1221,59 +1281,60 @@ export const BikesManagementTab: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-600 mb-1">Warna Sepeda</label>
+                  <label className="block text-[11px] font-bold text-slate-600 mb-1">Warna Unit</label>
                   <input
                     type="text"
                     value={bikeFormData.color}
                     onChange={(e) => setBikeFormData({ ...bikeFormData, color: e.target.value })}
                     className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold"
-                    placeholder="Teal, Hitam"
+                    placeholder="Teal, Hitam, Merah"
                   />
                 </div>
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-600 mb-1">Gigi / Shifter</label>
+                  <label className="block text-[11px] font-bold text-slate-600 mb-1">Aksesoris Bawaan Gratis</label>
                   <input
                     type="text"
-                    value={bikeFormData.gears}
-                    onChange={(e) => setBikeFormData({ ...bikeFormData, gears: e.target.value })}
+                    value={bikeFormData.accessories}
+                    onChange={(e) => setBikeFormData({ ...bikeFormData, accessories: e.target.value })}
                     className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold"
-                    placeholder="7-Speed Shimano"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[11px] font-bold text-slate-600 mb-1">Sistem Rem</label>
-                  <input
-                    type="text"
-                    value={bikeFormData.brakes}
-                    onChange={(e) => setBikeFormData({ ...bikeFormData, brakes: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold"
-                    placeholder="Cakram Hidrolik"
+                    placeholder="Helm SNI + Gembok Baja"
                   />
                 </div>
               </div>
 
-              {/* Foto Sepeda Preset & URL */}
-              <div className="space-y-2 pt-1">
+              {/* Upload Foto Unit Sepeda Langsung (File Picker) */}
+              <div className="space-y-2 pt-1 bg-slate-50/70 p-3.5 rounded-2xl border border-slate-200">
                 <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
-                  Foto Unit Sepeda (URL Gambar)
+                  Foto Unit Sepeda (Unggah dari HP / Perangkat) *
                 </label>
-                <div className="flex gap-3 items-center">
-                  <img
-                    src={bikeFormData.image || BIKE_IMAGES.city?.[0]}
-                    alt="Preview"
-                    className="w-16 h-16 rounded-2xl object-cover border border-slate-200 bg-slate-100 shrink-0"
-                  />
-                  <div className="flex-1 space-y-1.5">
-                    <input
-                      type="url"
-                      placeholder="https://images.unsplash.com/..."
-                      value={bikeFormData.image}
-                      onChange={(e) => setBikeFormData({ ...bikeFormData, image: e.target.value })}
-                      className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-mono"
+                <div className="flex flex-col sm:flex-row gap-3 items-center">
+                  <div className="relative group shrink-0">
+                    <img
+                      src={bikeFormData.image || BIKE_IMAGES.city?.[0]}
+                      alt="Preview Foto"
+                      className="w-20 h-20 rounded-2xl object-cover border-2 border-slate-200 bg-white shadow-xs"
                     />
-                    {/* Quick presets */}
-                    <div className="flex items-center gap-2">
-                      <span className="text-[10px] text-slate-400">Pilihan cepat:</span>
+                    <div className="absolute inset-0 bg-black/40 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-[10px] font-bold">
+                      Ganti Foto
+                    </div>
+                  </div>
+                  <div className="flex-1 w-full space-y-2">
+                    <label className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border-2 border-dashed border-[#4FC3C8] bg-white hover:bg-cyan-50/40 text-slate-700 cursor-pointer transition-all">
+                      <Plus className="w-4 h-4 text-[#4FC3C8]" />
+                      <span className="text-xs font-bold text-[#12202F]">Pilih / Unggah Foto Sepeda</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleBikeImageUpload}
+                        className="hidden"
+                      />
+                    </label>
+                    <p className="text-[10px] text-slate-400 text-center sm:text-left">
+                      Mendukung format JPG, PNG, WEBP langsung dari galeri atau kamera ponsel (Maks. 5MB)
+                    </p>
+                    {/* Preset images fallback */}
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="text-[10px] text-slate-400">Atau pilih preset:</span>
                       {(BIKE_IMAGES[bikeFormData.categorySlug] || BIKE_IMAGES.city || []).slice(0, 3).map((img, i) => (
                         <button
                           key={i}
@@ -1282,10 +1343,10 @@ export const BikesManagementTab: React.FC = () => {
                           className={`text-[10px] px-2 py-0.5 rounded border transition-all ${
                             bikeFormData.image === img
                               ? 'bg-[#12202F] text-white border-[#12202F]'
-                              : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'
+                              : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'
                           }`}
                         >
-                          Preset {i + 1}
+                          Galeri {i + 1}
                         </button>
                       ))}
                     </div>

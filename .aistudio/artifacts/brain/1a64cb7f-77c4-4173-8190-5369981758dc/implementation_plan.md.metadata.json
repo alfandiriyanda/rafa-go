@@ -1,6 +1,0 @@
-{
-  "summary":  "Rencana implementasi sistem pelacakan GPS sepeda berbasis QR Code untuk area CitraRaya City Jambi, mencakup pemaksaan izin lokasi berakurasi tinggi di HP konsumen, transmisi koordinat periodik ke Supabase, peta interaktif armada untuk admin/owner, dan deteksi pelanggaran batas wilayah (geofencing).",
-  "updatedAt":  "2026-11-09T15:12:48.803285967Z",
-  "requestFeedback":  true,
-  "userFacing":  true
-}
